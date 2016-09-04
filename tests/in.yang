@@ -1,0 +1,89 @@
+/**
+Big bad ass comment
+*/
+module "in" { /* hell */
+  namespace 'ani.com';
+  prefix pf;
+  include nonsense;
+
+
+
+  container C_1 {
+    leaf l {
+       tailf:type rt; // Acom
+       description "HelloWorld" 
+       + "hee" 
+       + "ho"; 
+    }
+    tailf:cli-suppress-table;
+  }
+
+  tailf:request areq{
+            config false;
+    input {
+      leaf in { type empty; } 
+    } 
+    output {
+      leaf out { type string; } 
+    } 
+  }
+
+typedef a_type  {
+   type enumeration {
+      enum MGMT_IF  {
+         value 12;
+      } 
+      enum 10Gig {
+       value 11;
+      }
+   }
+}
+            leaf max-idle-sleep-time {
+                tailf:info "Maximum sleep time after min-idle-time (in microseconds)";
+                type uint32;
+                units microseconds;
+                default 10;
+                range "1..20";
+            }
+                leaf length {
+                    type int32 {
+                        range -128..128;
+                    }
+                    default 0;
+                    tailf:display-when '../auto-adjust = "false"';
+                }
+            leaf-list services {
+                tailf:info "Name of the services";
+                type leafref {
+                    path 'sec:objects/sec:services/' +
+                        'sec:service/sec:name';
+                }
+            }
+
+                tailf:unique-selector pbf-policy-group/rules/rule {
+                    tailf:unique-leaf 'name';
+                }
+    augment "/org:orgs/org:org-services" {
+      status deprecated;
+    }
+        leaf-list ieee-802.1p {
+            tailf:info "Match 802.1P values";
+            tailf:display-when
+                    '../parent-type = "qos"';
+            must '../parent-type = "qos"' {
+                error-message "only supported for qos";
+            }
+            type uint8 {
+                range "0..7";
+                default 0.0.0.0;
+                default "";
+            }
+        }
+  typedef whoHistoryDateTimeFormatType {
+    type enumeration {
+      enum long { value 105537656; }
+      enum short { value 2029155337; }
+    }
+  }
+
+}

@@ -1,0 +1,19 @@
+module test {
+    /* Test module */
+
+    namespace test;
+    prefix pf;
+
+    container C1 {
+        continer C2 {
+            list l2 {
+                key k;
+                leaf f { 
+                    type string;
+                    tailf:info "Help"; // a 1 line com
+                }
+                leaf a2 { type uint32; }
+            }
+        }
+    }
+}
