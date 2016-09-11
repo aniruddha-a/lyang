@@ -1,0 +1,10 @@
+module m1 {
+   namespace 'n';
+   prefix 'p';
+
+   container C1 {
+       leaf l1 {
+         type string;
+       }
+   }
+}
