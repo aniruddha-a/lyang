@@ -5,3 +5,7 @@ Lua [LPeg](http://www.inf.puc-rio.br/~roberto/lpeg/) based [YANG](https://tools.
 # Required packages:
 
     $ sudo apt-get install lua5.2 lua-lpeg
+
+# Utils/debug
+
+Using [pprint](https://github.com/jagt/pprint.lua) for debugging.
