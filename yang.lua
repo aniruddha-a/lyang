@@ -49,7 +49,7 @@ function domatch (data)
             print("Matched entirely")
             if debug then
                 pp.pprint(ast.tree)
-                utils.indent_dump(ast.tree)
+                ast.indent_dump(ast.tree)
             end
         end
     end
