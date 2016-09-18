@@ -1,10 +1,11 @@
 local lpeg  = require 'lpeg'
-local pp    = require 'debug/pprint'
+local pp    = require 'thirdparty/pprint'
+local argp  = require 'thirdparty/argparse'
 local utils = require 'utils'
 local ast   = require 'ast'
 
 local exit  = os.exit
-local debug = true
+local args
 
 function domatch (data)
     local P, R, S, C, V   = lpeg.P, lpeg.R, lpeg.S, lpeg.C, lpeg.V
@@ -47,36 +48,52 @@ function domatch (data)
     else
         if n == #data then
             print("Matched entirely")
-            if debug then
+            if args.debug > 1 then
                 pp.pprint(ast.tree)
+            end
+            if args.debug > 0 then
                 ast.indent_dump(ast.tree)
             end
         end
     end
 end
 
-function main ()
+function main()
     local data
     local name
-    if arg[1] then
-        local fh = io.open(arg[1])
-        if fh then
-            data = fh:read('*a')
-            fh:close()
-        else
-            print("No such file: "..arg[1])
-            exit(1)
-        end
+    local infile = args.input
+    local fh     = io.open(infile)
+    if fh then
+        data = fh:read('*a')
+        fh:close()
+    else
+        print("No such file: "..infile)
+        exit(1)
     end
 
     if not data then
         print("No data!")
         exit(1)
     else
-        name = utils.basename(arg[1])
-        ast.init(name, debug)
+        name = utils.basename(infile)
+        ast.init(name, args.debug > 1 and true or false)
         domatch(data)
     end
 end
 
+function handle_args()
+    local optparse = argp("yang.lua", "A YANG recognizer and validator.")
+    optparse:argument("input", "Input YANG file.")
+    optparse:flag("-d --debug", "Debug (once for indented-dump, twice for parser tokens)")
+              :count '0-3'
+              :target 'debug'
+    optparse:option("-o --output", "Output format.",
+                                   "(for now indented [comment stripped] dump)")
+    optparse:option("-P --path", "Module/sub-module include paths.")
+              :count("*")
+    args = optparse:parse()
+    -- pp.pprint(args)
+end
+
+handle_args()
 main()
