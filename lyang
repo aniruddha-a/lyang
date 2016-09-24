@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [[ -z $(which lua) ]]; then
+    echo "Lua not installed, please run: sudo apt-get install lua5.2"
+    exit 1
+fi
+lua -l lpeg -e 'os.exit(0)' >& /dev/null
+if [[ $? -ne 0 ]]; then
+    echo "LPeg not installed, please run: sudo apt-get install lua-lpeg"
+    exit 1
+fi

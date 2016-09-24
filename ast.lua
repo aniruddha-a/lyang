@@ -49,8 +49,8 @@ end
 function _indent(t, nsp)
     local sp = ' '
     local val
-    if t.kids then
-        for _, k in ipairs(t.kids) do
+  --  if t.kids then
+        for _,k in ipairs(t.kids) do
             val = (k.val and k.val or '')
 
             -- put the concat ops - make it like orig yang
@@ -67,7 +67,7 @@ function _indent(t, nsp)
                 print(sp:rep(nsp)..'}')
             end
         end
-    end
+--    end
 end
 
 function ast.indent_dump(t)

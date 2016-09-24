@@ -1,8 +1,9 @@
-local lpeg  = require 'lpeg'
-local pp    = require 'thirdparty/pprint'
-local argp  = require 'thirdparty/argparse'
-local utils = require 'utils'
-local ast   = require 'ast'
+local lpeg   = require 'lpeg'
+local pp     = require 'thirdparty/pprint'
+local argp   = require 'thirdparty/argparse'
+local utils  = require 'utils'
+local ast    = require 'ast'
+local checks = require 'checks' -- validations
 
 local exit  = os.exit
 local args
@@ -48,6 +49,7 @@ function domatch (data)
     else
         if n == #data then
             print("Matched entirely")
+            checks.run(ast.tree)
             if args.debug > 1 then
                 pp.pprint(ast.tree)
             end

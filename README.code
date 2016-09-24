@@ -1,0 +1,26 @@
+
+            id ----+       +-- val
+                   |       |
+                   v       v
+                container  C1 {  <---+--+
+                |                    | parent
+        kid[1]  +-> leaf  L1 { ------+  |
+                |       type string;    |
+                |   }                 parent
+                |                       |
+        kid[2]  +-> leaf  L2 {  --------+  <-----+
+                    |                            | parent
+             kid[1] +-> type uint32;  -----------+
+                    }    ^    ^    ^
+                }        |    |    |
+                         |    |    +-- node = nil
+                         |    |
+                id ------+    +---- val
+
+
+
+ Node:
+
+    +----+-----+--------+---------+
+    | id | val | parent |  kids   |
+    +----+-----+--------+---------+
