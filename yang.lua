@@ -49,7 +49,11 @@ function domatch (data)
     else
         if n == #data then
             print("Matched entirely")
-            checks.run(ast.tree)
+            if checks.run(ast.tree) then
+                print("Successfully validated")
+            else
+                print(checks.validation_errs .. " Validation errors found")
+            end
             if args.debug > 1 then
                 pp.pprint(ast.tree)
             end
