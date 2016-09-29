@@ -1,17 +1,72 @@
 local checks = {
-   must_have       = {},
-   allowed         = {},
    validation_errs = 0,
+   modname         = nil,
 }
 
-checks.must_have['module']    = { 'namespace', 'prefix' }
-checks.must_have['submodule'] = { 'belongs-to' }
-checks.must_have['typedef']   = { 'type' }
-checks.must_have['leaf']      = { 'type' }
-checks.must_have['leaf-list'] = { 'type' }
+must_have_subs, allowed_subs, additional_checks  = {}, {}, {}
 
+local function print_error(msg)
+    print('Error: '..msg)
+    checks.validation_errs = checks.validation_errs + 1
+end
 
-checks.allowed['module'] = {
+-- Module and revision checks
+local function check_module(t)
+    if t.val ~= checks.modname then
+        print_error("Module name ("..t.val..") and file name ("..checks.modname
+                    ..") should match")
+    end
+    local subs = t.node.kids
+    local header_seen, linkage_seen, meta_seen, revision_seen = false, false, false, false
+    local rev ={}
+
+    for _,k in ipairs(subs) do
+        if k.id == 'namespace' or k.id == 'prefix' or k.id == 'belongs-to' then -- submodule chk also
+            if linkage_seen or meta_seen or revision_seen then
+                if t.id == 'module' then
+                    print_error(t.id .. " must begin with namespace/prefix ("..t.id.." "..t.val..")")
+                else
+                    print_error(t.id .." must begin with belongs-to ("..t.id.." "..t.val..")")
+                end
+            end
+            header_seen = true
+        end
+        if k.id == 'import' or k.id == 'include' then
+            if meta_seen or revision_seen then
+                print_error("'import'/'include' statements should be before"..
+                      " 'revision'/meta statements (module "..t.val..")")
+            end
+            linkage_seen = true
+        end
+        if k.id == 'revision' then
+            revision_seen = true
+            if not k.val:match('^%d%d%d%d[-]%d%d[-]%d%d$') then
+                print_error("revision date should be of the form: YYYY-MM-DD ("..k.val..")")
+            end
+            table.insert(rev, k.val)
+        end
+    end
+    for i = 1,#rev do
+        if rev[i+1] and rev[i] < rev[i+1] then
+            print_error("revisions should be in reverse chronological order ("
+            ..rev[i+1].." before "..rev[i]..")")
+        end
+    end
+end
+
+-- Mandatory substatements
+must_have_subs['module']    = { 'namespace', 'prefix' }
+must_have_subs['submodule'] = { 'belongs-to' }
+must_have_subs['typedef']   = { 'type' }
+must_have_subs['leaf']      = { 'type' }
+must_have_subs['leaf-list'] = { 'type' }
+
+-- Additional checks which do not fit under other categories
+additional_checks['module'] = check_module
+additional_checks['module'] = check_module
+
+-- Allowed substatements (only these can appear under its parent [other than namespaced ones])
+allowed_subs['module'] = {
     anyxml           = true,
     augment          = true,
     choice           = true,
@@ -40,7 +95,7 @@ checks.allowed['module'] = {
     ['yang-version'] = true,
 }
 
-checks.allowed['submodule'] = {
+allowed_subs['submodule'] = {
     anyxml           = true,
     augment          = true,
     ['belongs-to']   = true,
@@ -68,25 +123,25 @@ checks.allowed['submodule'] = {
     ['yang-version'] = true,
 }
 
-checks.allowed['import'] = {
+allowed_subs['import'] = {
     prefix            = true,
     ['revision-date'] = true,
 }
 
-checks.allowed['belongs-to'] = {
+allowed_subs['belongs-to'] = {
     prefix            = true,
 }
 
-checks.allowed['include'] = {
+allowed_subs['include'] = {
     ['revision-date'] = true,
 }
 
-checks.allowed['revision'] = {
+allowed_subs['revision'] = {
     description = true,
     reference   = true,
 }
 
-checks.allowed['typedef'] = {
+allowed_subs['typedef'] = {
     default      = true,
     description  = true,
     reference    = true,
@@ -95,7 +150,7 @@ checks.allowed['typedef'] = {
     units        = true,
 }
 
-checks.allowed['type'] = {
+allowed_subs['type'] = {
     bit                  = true,
     default              = true,
     enum                 = true,
@@ -107,7 +162,7 @@ checks.allowed['type'] = {
     type                 = true,
 }
 
-checks.allowed['container'] = {
+allowed_subs['container'] = {
     anyxml         = true,
     choice         = true,
     config         = true,
@@ -127,14 +182,14 @@ checks.allowed['container'] = {
     when           = true,
 }
 
-checks.allowed['must'] = {
+allowed_subs['must'] = {
     description       = true,
     ['error-app-tag'] = true,
     ['error-message'] = true,
     reference         = true,
 }
 
-checks.allowed['leaf'] = {
+allowed_subs['leaf'] = {
     config         = true,
     default        = true,
     description    = true,
@@ -148,7 +203,7 @@ checks.allowed['leaf'] = {
     when           = true,
 }
 
-checks.allowed['leaf-list'] = {
+allowed_subs['leaf-list'] = {
     config           = true,
     description      = true,
     ['if-feature']   = true,
@@ -163,7 +218,7 @@ checks.allowed['leaf-list'] = {
     when             = true,
 }
 
-checks.allowed['list'] = {
+allowed_subs['list'] = {
     anyxml           = true,
     choice           = true,
     config           = true,
@@ -187,7 +242,7 @@ checks.allowed['list'] = {
     when             = true,
 }
 
-checks.allowed['choice'] = {
+allowed_subs['choice'] = {
     anyxml         = true,
     case           = true,
     config         = true,
@@ -204,7 +259,7 @@ checks.allowed['choice'] = {
     when           = true,
 }
 
-checks.allowed['case'] = {
+allowed_subs['case'] = {
     anyxml         = true,
     choice         = true,
     container      = true,
@@ -219,7 +274,7 @@ checks.allowed['case'] = {
     when           = true,
 }
 
-checks.allowed['anyxml'] = {
+allowed_subs['anyxml'] = {
     config         = true,
     description    = true,
     ['if-feature'] = true,
@@ -230,7 +285,7 @@ checks.allowed['anyxml'] = {
     when           = true,
 }
 
-checks.allowed['grouping'] = {
+allowed_subs['grouping'] = {
     anyxml        = true,
     choice        = true,
     container     = true,
@@ -245,7 +300,7 @@ checks.allowed['grouping'] = {
     uses          = true,
 }
 
-checks.allowed['uses'] = {
+allowed_subs['uses'] = {
     augment        = true,
     description    = true,
     ['if-feature'] = true,
@@ -255,7 +310,7 @@ checks.allowed['uses'] = {
     when           = true,
 }
 
-checks.allowed['rpc'] = {
+allowed_subs['rpc'] = {
     description    = true,
     grouping       = true,
     ['if-feature'] = true,
@@ -266,7 +321,7 @@ checks.allowed['rpc'] = {
     typedef        = true,
 }
 
-checks.allowed['input'] = {
+allowed_subs['input'] = {
     anyxml        = true,
     choice        = true,
     container     = true,
@@ -278,7 +333,7 @@ checks.allowed['input'] = {
     uses          = true,
 }
 
-checks.allowed['output'] =  {
+allowed_subs['output'] =  {
     anyxml        = true,
     choice        = true,
     container     = true,
@@ -290,7 +345,7 @@ checks.allowed['output'] =  {
     uses          = true,
 }
 
-checks.allowed['notification'] =  {
+allowed_subs['notification'] =  {
     anyxml         = true,
     choice         = true,
     container      = true,
@@ -306,7 +361,7 @@ checks.allowed['notification'] =  {
     uses           = true,
 }
 
-checks.allowed['augment'] =  {
+allowed_subs['augment'] =  {
     anyxml         = true,
     case           = true,
     choice         = true,
@@ -322,38 +377,38 @@ checks.allowed['augment'] =  {
     when           = true,
 }
 
-checks.allowed['identity'] =  {
+allowed_subs['identity'] =  {
     base        = true,
     description = true,
     reference   = true,
     status      = true,
 }
 
-checks.allowed['extension'] =  {
+allowed_subs['extension'] =  {
     argument    = true,
     description = true,
     reference   = true,
     status      = true,
 }
 
-checks.allowed['argument'] =  {
+allowed_subs['argument'] =  {
     ['yin-element'] = true,
 }
 
-checks.allowed['feature'] =  {
+allowed_subs['feature'] =  {
     description    = true,
     ['if-feature'] = true,
     reference      = true,
     status         = true,
 }
 
-checks.allowed['deviation'] =  {
+allowed_subs['deviation'] =  {
     description = true,
     deviate     = true,
     status      = true,
 }
 
-checks.allowed['deviate'] =  {
+allowed_subs['deviate'] =  {
     config           = true,
     default          = true,
     mandatory        = true,
@@ -365,44 +420,48 @@ checks.allowed['deviate'] =  {
     units            = true,
 }
 
-checks.allowed['range'] =  {
+allowed_subs['range'] =  {
     description       = true,
     ['error-app-tag'] = true,
     ['error-message'] = true,
     reference         = true,
 }
 
-checks.allowed['length'] =  {
+allowed_subs['length'] =  {
     description       = true,
     ['error-app-tag'] = true,
     ['error-message'] = true,
     reference         = true,
 }
 
-checks.allowed['pattern'] =  {
+allowed_subs['pattern'] =  {
     description       = true,
     ['error-app-tag'] = true,
     ['error-message'] = true,
     reference         = true,
 }
 
-checks.allowed['enum'] =  {
+allowed_subs['enum'] =  {
     description = true,
     reference   = true,
     status      = true,
     value       = true,
 }
 
-checks.allowed['bit'] =  {
+allowed_subs['bit'] =  {
     description = true,
     reference   = true,
     status      = true,
     position    = true,
 }
 
-function _apply_checks(id, val, t)
-    local chk_list = checks.allowed[id]
-    local seen = {}
+function _apply_checks(n)
+    local id       = n.id
+    local val      = n.val
+    local t        = n.node
+    local chk_list = allowed_subs[id]
+    local seen     = {}
+
     if not chk_list then
         -- print('NYI for', id)
         return
@@ -410,28 +469,31 @@ function _apply_checks(id, val, t)
 
     for _,k in ipairs(t.kids) do
         if not chk_list[k.id] and not k.id:match(':') then -- ignore namespaced kids
-            print("Error: '"..k.id.."' cannot appear as child of '"..id.."' ("..id.." "..val..")")
-            checks.validation_errs = checks.validation_errs + 1
+            print_error("'"..k.id.."' cannot appear as child of '"..id.."' ("
+                        ..id.." "..val..")")
         end
-        if checks.must_have[id] then
+        if must_have_subs[id] then
             if not seen[k.id] then seen[k.id] = true end
         end
     end
 
-    if checks.must_have[id] then
-        for _,v in ipairs(checks.must_have[id]) do
+    if must_have_subs[id] then
+        for _,v in ipairs(must_have_subs[id]) do
             if not seen[v] then
-                print("Error: '"..v.."' is mandatory under '"..id.."' ("..id.." "..val..")")
-                checks.validation_errs = checks.validation_errs + 1
+                print_error("'"..v.."' is mandatory under '"..id.."' ("..id.." "..val..")")
             end
         end
+    end
+
+    if additional_checks[id] ~= nil then
+        additional_checks[id](n)
     end
 end
 
 function _run(t)
     for _,k in ipairs(t.kids) do
         if k.node then
-            _apply_checks(k.id, k.val, k.node)
+            _apply_checks(k)
         end
     end
     for _,k in ipairs(t.kids) do
@@ -441,7 +503,10 @@ function _run(t)
     end
 end
 
-function checks.run(t)
+function checks.run(ast)
+    local t        = ast.tree
+    checks.modname = ast.name
+
     checks.validation_errs = 0
     _run(t)
     if checks.validation_errs > 0 then

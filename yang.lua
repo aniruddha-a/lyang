@@ -49,15 +49,15 @@ function domatch (data)
     else
         if n == #data then
             print("Matched entirely")
-            if checks.run(ast.tree) then
+            if checks.run(ast) then
                 print("Successfully validated")
             else
                 print(checks.validation_errs .. " Validation errors found")
             end
-            if args.debug > 1 then
+            if args.debug > 1 then -- -dd
                 pp.pprint(ast.tree)
             end
-            if args.debug > 0 then
+            if args.debug > 0 then --  -d
                 ast.indent_dump(ast.tree)
             end
         end
@@ -69,6 +69,7 @@ function main()
     local name
     local infile = args.input
     local fh     = io.open(infile)
+
     if fh then
         data = fh:read('*a')
         fh:close()
@@ -81,7 +82,7 @@ function main()
         print("No data!")
         exit(1)
     else
-        name = utils.basename(infile)
+        name = utils.basename(infile):match('[^.]+')
         ast.init(name, args.debug > 1 and true or false)
         domatch(data)
     end

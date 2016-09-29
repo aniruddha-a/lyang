@@ -1,0 +1,6 @@
+submodule submod1 {
+  belongs-to mainmod;
+
+  include test;
+
+}

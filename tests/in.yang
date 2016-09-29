@@ -1,7 +1,7 @@
 /**
 Big bad ass comment
 */
-module "in" { /* hell */
+module in { /* hell */
   namespace 'ani.com';
   prefix pf;
   include nonsense;
