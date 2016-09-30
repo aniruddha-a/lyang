@@ -49,25 +49,23 @@ end
 function _indent(t, nsp)
     local sp = ' '
     local val
-  --  if t.kids then
-        for _,k in ipairs(t.kids) do
-            val = (k.val and k.val or '')
+    for _,k in ipairs(t.kids) do
+        val = (k.val and k.val or '')
 
-            -- put the concat ops - make it like orig yang
-            if val and (val:match('"') or val:match("'")) then
-                val = val:gsub('"%s+"', '" + "')
-                val = val:gsub("'%s+'", "' + '")
-            end
-
-            if not k.node then
-                print(sp:rep(nsp).. k.id ..' '.. val ..';')
-            else
-                print(sp:rep(nsp).. k.id ..' '.. val ..' {')
-                _indent(k.node, nsp + 4)
-                print(sp:rep(nsp)..'}')
-            end
+        -- put the concat ops - make it like orig yang
+        if val and (val:match('"') or val:match("'")) then
+            val = val:gsub('"%s+"', '" + "')
+            val = val:gsub("'%s+'", "' + '")
         end
---    end
+
+        if not k.node then
+            print(sp:rep(nsp).. k.id ..' '.. val ..';')
+        else
+            print(sp:rep(nsp).. k.id ..' '.. val ..' {')
+            _indent(k.node, nsp + 4)
+            print(sp:rep(nsp)..'}')
+        end
+    end
 end
 
 function ast.indent_dump(t)
