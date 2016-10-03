@@ -1,7 +1,6 @@
 local ast = {
         tree = nil,
         name = nil, -- basename of the file (module name)
-        meta = nil -- TODO (uses/import/grouping etc?)
 }
 local utils = require 'utils'
 

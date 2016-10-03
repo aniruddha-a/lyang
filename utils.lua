@@ -4,7 +4,7 @@ function utils.trim(s) -- trim5 of lua-users
     return s:match'^%s*(.*%S)' or ''
 end
 
-function utils.jcat(acc, s)
+function utils.jcat(acc, s) -- concat Java like string (with + operators)
     --[[
     local a = acc:gsub('"','')
     a = a:gsub("'", '')

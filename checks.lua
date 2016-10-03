@@ -54,6 +54,8 @@ local function check_module(t)
     end
 end
 
+-- ******************** List/table of all checks ****************
+
 -- Mandatory substatements
 must_have_subs['module']    = { 'namespace', 'prefix' }
 must_have_subs['submodule'] = { 'belongs-to' }
@@ -64,6 +66,13 @@ must_have_subs['leaf-list'] = { 'type' }
 -- Additional checks which do not fit under other categories
 additional_checks['module'] = check_module
 additional_checks['module'] = check_module
+
+--[[
+additional_checks['import'] = add_to_match_list
+additional_checks['include'] = add_to_match_list
+actions['grouping'] = expand_grouping
+actions['augment'] = expand_augment
+]]
 
 -- Allowed substatements (only these can appear under its parent [other than namespaced ones])
 allowed_subs['module'] = {
