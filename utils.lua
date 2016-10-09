@@ -4,14 +4,13 @@ function utils.trim(s) -- trim5 of lua-users
     return s:match'^%s*(.*%S)' or ''
 end
 
-function utils.jcat(acc, s) -- concat Java like string (with + operators)
-    --[[
-    local a = acc:gsub('"','')
+function utils.strip_quote(s)
+    local a = s:gsub('"','')
     a = a:gsub("'", '')
-    local b = s:gsub('"','')
-    b = b:gsub("'", '')
-    return a..b
-    ]]
+    return a
+end
+
+function utils.jcat(acc, s) -- concat Java like string (with + operators)
     -- Lets sanitize str before use, not here
     return acc..s
 end

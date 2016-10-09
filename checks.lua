@@ -1,11 +1,13 @@
+local utils = require 'utils'
+
 local checks = {
    validation_errs = 0,
-   modname         = nil,
+   modname         = nil, -- Name of the module/submodule we are processing
 }
 
 must_have_subs, allowed_subs, additional_checks  = {}, {}, {}
 
-local function print_error(msg)
+local function perror(msg)
     print('Error: '..msg)
     checks.validation_errs = checks.validation_errs + 1
 end
@@ -13,27 +15,30 @@ end
 -- Module and revision checks
 local function check_module(t)
     if t.val ~= checks.modname then
-        print_error("Module name ("..t.val..") and file name ("..checks.modname
+        perror("Module name ("..t.val..") and file name ("..checks.modname
                     ..") should match")
     end
     local subs = t.node.kids
+    local rev  = {}
     local header_seen, linkage_seen, meta_seen, revision_seen = false, false, false, false
-    local rev ={}
 
     for _,k in ipairs(subs) do
         if k.id == 'namespace' or k.id == 'prefix' or k.id == 'belongs-to' then -- submodule chk also
             if linkage_seen or meta_seen or revision_seen then
                 if t.id == 'module' then
-                    print_error(t.id .. " must begin with namespace/prefix ("..t.id.." "..t.val..")")
+                    perror(t.id .. " must begin with namespace/prefix ("..t.id.." "..t.val..")")
                 else
-                    print_error(t.id .." must begin with belongs-to ("..t.id.." "..t.val..")")
+                    perror(t.id .." must begin with belongs-to ("..t.id.." "..t.val..")")
                 end
             end
             header_seen = true
         end
+        if k.id == 'prefix' then
+            checks.modules.prefix[checks.modname] = utils.strip_quote(k.val)
+        end
         if k.id == 'import' or k.id == 'include' then
             if meta_seen or revision_seen then
-                print_error("'import'/'include' statements should be before"..
+                perror("'import'/'include' statements should be before"..
                       " 'revision'/meta statements (module "..t.val..")")
             end
             linkage_seen = true
@@ -41,14 +46,15 @@ local function check_module(t)
         if k.id == 'revision' then
             revision_seen = true
             if not k.val:match('^%d%d%d%d[-]%d%d[-]%d%d$') then
-                print_error("revision date should be of the form: YYYY-MM-DD ("..k.val..")")
+                perror("revision date should be of the form: YYYY-MM-DD ("..k.val..")")
             end
-            table.insert(rev, k.val)
+            table.insert(rev, k.val) -- create a revisions table
         end
     end
+    -- Walk through all the revisions
     for i = 1,#rev do
         if rev[i+1] and rev[i] < rev[i+1] then
-            print_error("revisions should be in reverse chronological order ("
+            perror("revisions should be in reverse chronological order ("
             ..rev[i+1].." before "..rev[i]..")")
         end
     end
@@ -478,7 +484,7 @@ function _apply_checks(n)
 
     for _,k in ipairs(t.kids) do
         if not chk_list[k.id] and not k.id:match(':') then -- ignore namespaced kids
-            print_error("'"..k.id.."' cannot appear as child of '"..id.."' ("
+            perror("'"..k.id.."' cannot appear as child of '"..id.."' ("
                         ..id.." "..val..")")
         end
         if must_have_subs[id] then
@@ -489,7 +495,7 @@ function _apply_checks(n)
     if must_have_subs[id] then
         for _,v in ipairs(must_have_subs[id]) do
             if not seen[v] then
-                print_error("'"..v.."' is mandatory under '"..id.."' ("..id.." "..val..")")
+                perror("'"..v.."' is mandatory under '"..id.."' ("..id.." "..val..")")
             end
         end
     end
@@ -512,9 +518,10 @@ function _run(t)
     end
 end
 
-function checks.run(ast)
+function checks.run(ast, modules)
     local t        = ast.tree
     checks.modname = ast.name
+    checks.modules = modules
 
     checks.validation_errs = 0
     _run(t)

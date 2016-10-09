@@ -24,3 +24,12 @@
     +----+-----+--------+---------+
     | id | val | parent |  kids   |
     +----+-----+--------+---------+
+
+ Call:
+
+    main (yang) -> matcher
+                   matcher -> domatch
+                     ^        <invoke checker>
+                     |        checker -> <adds imports/includes to list>
+                     |          |
+                     +----------+

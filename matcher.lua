@@ -5,8 +5,11 @@ local ast    = require 'ast'
 local checks = require 'checks' -- validations
 
 local matcher = {
-
 }
+
+local function perror(msg)
+    print('Error: '..msg)
+end
 
 function _domatch(name, data)
     local P, R, S, C, V   = lpeg.P, lpeg.R, lpeg.S, lpeg.C, lpeg.V
@@ -49,7 +52,7 @@ function _domatch(name, data)
     else
         if n == #data then
             print("'"..name.."': Matched entirely")
-            if checks.run(ast) then
+            if checks.run(ast, matcher.modules) then
                 print("'"..name.."': Validated successfully ")
                 return ast.tree
             else
@@ -61,28 +64,33 @@ function _domatch(name, data)
 end
 
 function matcher.run(modules, infile, debug)
-    local data
-    local name
-    local tree
+
+    matcher.modules = modules
+
+    local data, modname, tree = nil, nil, nil
     local fh = io.open(infile)
 
     if fh then
         data = fh:read('*a')
         fh:close()
     else
-        print("No such file: "..infile)
+        perror("No such file: "..infile)
         return false
     end
 
     if not data then
-        print("Failed to read: ".. infile)
+        perror("Failed to read: ".. infile)
         return false
     else
-        name = utils.basename(infile):match('[^.]+')
-        ast.init(name, debug > 1 and true or false)
-        tree = _domatch(name, data)
+        modname = utils.basename(infile):match('[^.]+')
+        ast.init(modname, debug > 1 and true or false)
+        tree = _domatch(modname, data)
         if tree then
-            modules[name] = tree
+            if modules.name[modname] ~= nil then
+                perror("There is already a module with name: "..modname)
+            else
+                modules.name[modname] = tree
+            end
         end
         if debug > 1 then -- -dd
             pp.pprint(tree)
