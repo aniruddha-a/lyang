@@ -1,0 +1,10 @@
+module mainmod {
+   namespace 'http://mainmod';
+   prefix mm;
+
+   include submod1;
+
+   container m {
+
+   }
+}

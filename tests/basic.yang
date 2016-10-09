@@ -1,0 +1,9 @@
+module basic  {
+  namespace 'http://basic';
+  prefix bs;
+
+  import utils {
+    prefix ut;
+  }
+
+}

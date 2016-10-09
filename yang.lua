@@ -5,7 +5,7 @@ local ast     = require 'ast'
 local exit  = os.exit
 local args
 
-local modules = { -- indexable by name or prefix
+local modules = { -- indexable by name or prefix (Note: here we load both yang module/submodule
     name   = {},
     prefix = {}
 }
@@ -13,8 +13,9 @@ local modules = { -- indexable by name or prefix
 function main()
     matcher.run(modules, args.input, args.debug)
     for mod,tree in pairs(modules.name) do
-        if args.debug > 0 then --  -d
-            print("Dumping: '".. mod.. "' ("..modules.prefix[mod]..")")
+        if args.debug > 0 then --  ( -d )
+            local pfx = modules.prefix[mod] and modules.prefix[mod] or "<none>"
+            print("Dumping: '".. mod.. "' (".. pfx ..")")
             ast.indent_dump(tree)
         end
     end

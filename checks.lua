@@ -60,6 +60,21 @@ local function check_module(t)
     end
 end
 
+local function add_to_match_list(t)
+    local name = utils.strip_quote(t.val)
+    checks.modules.name[name] = utils.not_yet_matched
+
+    if not t.node then return end  -- No kids, e.g: include submod;
+
+    local subs = t.node.kids
+    for _,k in ipairs(subs) do
+        if k.id == 'prefix' then
+            local pfx = utils.strip_quote(k.val)
+            checks.modules.prefix[pfx] = utils.not_yet_matched
+        end
+    end
+end
+
 -- ******************** List/table of all checks ****************
 
 -- Mandatory substatements
@@ -71,11 +86,12 @@ must_have_subs['leaf-list'] = { 'type' }
 
 -- Additional checks which do not fit under other categories
 additional_checks['module'] = check_module
-additional_checks['module'] = check_module
+additional_checks['submodule'] = check_module
+
+additional_checks['import']  = add_to_match_list
+additional_checks['include'] = add_to_match_list
 
 --[[
-additional_checks['import'] = add_to_match_list
-additional_checks['include'] = add_to_match_list
 actions['grouping'] = expand_grouping
 actions['augment'] = expand_augment
 ]]
@@ -482,6 +498,8 @@ function _apply_checks(n)
         return
     end
 
+    if not t then goto only_additional end
+
     for _,k in ipairs(t.kids) do
         if not chk_list[k.id] and not k.id:match(':') then -- ignore namespaced kids
             perror("'"..k.id.."' cannot appear as child of '"..id.."' ("
@@ -500,6 +518,8 @@ function _apply_checks(n)
         end
     end
 
+::only_additional::
+
     if additional_checks[id] ~= nil then
         additional_checks[id](n)
     end
@@ -507,9 +527,9 @@ end
 
 function _run(t)
     for _,k in ipairs(t.kids) do
-        if k.node then
+        -- if k.node then
             _apply_checks(k)
-        end
+        -- end
     end
     for _,k in ipairs(t.kids) do
         if k.node then

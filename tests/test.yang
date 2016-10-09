@@ -8,7 +8,7 @@ module test {
         container C2 {
             list l2 {
                 key k;
-                leaf f { 
+                leaf f {
                     type string;
                     tailf:info "Help"; // a 1 line com
                 }

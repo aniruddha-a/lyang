@@ -1,6 +1,9 @@
 submodule submod1 {
-  belongs-to mainmod;
+    belongs-to mainmod;
 
-  include test;
-
+    container sub {
+        leaf sl {
+            type string;
+        }
+    }
 }

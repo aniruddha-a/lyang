@@ -63,37 +63,64 @@ function _domatch(name, data)
     return nil
 end
 
-function matcher.run(modules, infile, debug)
+local function _get_modname(infile)
+    return utils.basename(infile):match('[^.]+')
+end
 
-    matcher.modules = modules
-
-    local data, modname, tree = nil, nil, nil
+local function _read_file(infile)
     local fh = io.open(infile)
+    local data
 
     if fh then
         data = fh:read('*a')
         fh:close()
+        return data
     else
         perror("No such file: "..infile)
-        return false
+        return nil
     end
+end
+
+function matcher.run(modules, infile, debug)
+
+    matcher.modules = modules
+
+    local modname = _get_modname(infile)
+    local data    = _read_file(infile)
+    local tree    = nil
 
     if not data then
         perror("Failed to read: ".. infile)
         return false
-    else
-        modname = utils.basename(infile):match('[^.]+')
-        ast.init(modname, debug > 1 and true or false)
-        tree = _domatch(modname, data)
-        if tree then
-            if modules.name[modname] ~= nil then
-                perror("There is already a module with name: "..modname)
-            else
-                modules.name[modname] = tree
-            end
+    end
+    --
+    -- Match and load the main module
+    ast.init(modname, debug > 1 and true or false)
+    tree = _domatch(modname, data)
+    if tree then
+        if modules.name[modname] ~= nil then
+            perror("There is already a module with name: "..modname)
+        else
+            modules.name[modname] = tree
         end
-        if debug > 1 then -- -dd
-            pp.pprint(tree)
+    end
+    if debug > 1 then pp.pprint(tree) --[[ -dd ]] end
+
+    -- Check if we had imports/includes and they need to be matched as well
+    for mod,t in pairs(modules.name) do
+        if t == utils.not_yet_matched then
+            print("'"..modname.."': Requires '" .. mod .. "'")
+            ast.init(mod, debug > 1 and true or false)
+            data = _read_file(utils.find_file(mod))
+            if data then
+                tree = _domatch(mod, data)
+                if tree then
+                    modules.name[mod] = tree  -- as per Lua its ok to modify while walk, no new additions thou
+                    if debug > 1 then pp.pprint(tree) --[[ -dd ]] end
+                end
+            else
+                perror("Failed to read: ".. utils.find_file(mod))
+            end
         end
     end
 end

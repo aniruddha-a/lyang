@@ -1,0 +1,10 @@
+module utils {
+  namespace 'http://utils';
+  prefix ut;
+
+  container u {
+     leaf lu {
+       type uint32;
+     }
+  }
+}

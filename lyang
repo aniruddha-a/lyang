@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Top level wrapper to simplify incovation and test
+
 if [[ -z $(which lua) ]]; then
     echo "Lua not installed, please run: sudo apt-get install lua5.2"
     exit 1
@@ -8,4 +10,13 @@ lua -l lpeg -e 'os.exit(0)' >& /dev/null
 if [[ $? -ne 0 ]]; then
     echo "LPeg not installed, please run: sudo apt-get install lua-lpeg"
     exit 1
+fi
+
+if [[ $1 == test ]]; then
+    for i in tests/*.yang; do
+        echo "==> Running $i"
+        lua yang.lua $2 $3 $i # All files from tests dir
+    done
+else
+    lua yang.lua $@  # Single file with all args passed as-is
 fi
