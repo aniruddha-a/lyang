@@ -75,6 +75,12 @@ local function add_to_match_list(t)
     end
 end
 
+local function assert_ver1(t)
+    if utils.strip_quote(t.val) ~= '1' then
+        perror("Only YANG version 1 supported (version has to be '1')")
+    end
+end
+
 -- ******************** List/table of all checks ****************
 
 -- Mandatory substatements
@@ -90,6 +96,8 @@ additional_checks['submodule'] = check_module
 
 additional_checks['import']  = add_to_match_list
 additional_checks['include'] = add_to_match_list
+
+additional_checks['yang-version'] = assert_ver1
 
 --[[
 actions['grouping'] = expand_grouping
@@ -493,12 +501,17 @@ function _apply_checks(n)
     local chk_list = allowed_subs[id]
     local seen     = {}
 
+    --[[
     if not chk_list then
-        -- print('NYI for', id)
+         print('NYI for', id)
         return
     end
+    ]]
 
-    if not t then goto only_additional end
+    -- No children or no list of substatements to chk
+    if not t or not chk_list then
+        goto only_additional
+    end
 
     for _,k in ipairs(t.kids) do
         if not chk_list[k.id] and not k.id:match(':') then -- ignore namespaced kids

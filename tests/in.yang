@@ -5,6 +5,8 @@ module in { /* hell */
     namespace 'ani.com';
     prefix pf;
 
+    yang-version "1";
+
     container C_1 {
         leaf l {
             type rt; // Acom
