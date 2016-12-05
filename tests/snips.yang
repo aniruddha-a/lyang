@@ -1,0 +1,26 @@
+module snips {
+    namespace 'snips';
+    prefix 's';
+
+    container S {
+        list l1 {
+          key k;
+          leaf k {
+            tailf:hidden internal; // remove me
+            type string;
+          }
+          leaf j {
+           type string;
+          }
+        }
+
+        container K2 {
+            tailf:hidden internal;
+            // remove me
+        }
+
+        leaf J2 {
+          type uint32;
+        }
+    }
+}

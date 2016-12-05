@@ -1,6 +1,7 @@
 local argp    = require 'thirdparty/argparse'
 local matcher = require 'matcher'
 local ast     = require 'ast'
+local pp      = require 'thirdparty/pprint'
 
 local exit  = os.exit
 local args
@@ -16,7 +17,7 @@ function main()
         if args.debug > 0 then --  ( -d )
             local pfx = modules.prefix[mod] and modules.prefix[mod] or "<none>"
             print("Dumping: '".. mod.. "' (".. pfx ..")")
-            ast.indent_dump(tree)
+            ast.indent_dump(tree, args.filter and args.filter[1] or nil) -- assume 1 filter for now
         end
     end
 end
@@ -31,8 +32,10 @@ function handle_args()
                                    "(for now indented [comment stripped] dump)")
     optparse:option("-P --path", "Module/sub-module include paths.")
               :count("*")
+    optparse:option("-F --filter", "Apply filters")
+              :count("*")
     args = optparse:parse()
-    -- pp.pprint(args)
+    --pp.pprint(args)
 end
 
 handle_args()

@@ -45,6 +45,7 @@ function ast.add(type,...)
     ast.cur = cur
 end
 
+-- Plain indent
 function _indent(t, nsp)
     local sp = ' '
     local val
@@ -70,8 +71,49 @@ function _indent(t, nsp)
     end
 end
 
-function ast.indent_dump(t)
-    return _indent(t, 0)
+-- With filters
+function _indent2(t, nsp, filter)
+    local sp = ' '
+    local val
+
+    if t.kids then              -- kids can be empty blocks like: container C {}
+        for _,k in ipairs(t.kids) do
+            val = (k.val and k.val or '')
+
+            -- put the concat ops - make it like orig yang
+            if val and (val:match('"') or val:match("'")) then
+                val = val:gsub('"%s+"', '" + "')
+                val = val:gsub("'%s+'", "' + '")
+            end
+
+            if not k.node then
+                print(sp:rep(nsp).. k.id ..' '.. val ..';')
+            else
+                local skip = false
+                for _,kids in pairs(k.node.kids) do
+                    if filter.remove_containing[kids.id] and
+                        kids.val == filter.remove_containing[kids.id] then
+                        -- print("Skip (", k.id, val, ")")
+                        skip = true
+                    end
+                end
+                if not skip then
+                    print(sp:rep(nsp).. k.id ..' '.. val ..' {')
+                    _indent2(k.node, nsp + 4, filter)
+                    print(sp:rep(nsp)..'}')
+                end
+            end
+        end
+    end
+end
+
+function ast.indent_dump(t, ff)
+    if ff then
+        local f = dofile(ff)
+        return _indent2(t, 0, f)
+    else
+        return _indent(t, 0)
+    end
 end
 
 return ast
