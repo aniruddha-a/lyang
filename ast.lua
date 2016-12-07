@@ -75,10 +75,23 @@ end
 function _indent2(t, nsp, filter)
     local sp = ' '
     local val
+    local fremov, fdrop, freplace
 
     if t.kids then              -- kids can be empty blocks like: container C {}
         for _,k in ipairs(t.kids) do
             val = (k.val and k.val or '')
+
+            fdrop = filter.remove_node[k.id] 
+            if fdrop and fdrop == utils.strip_quote(k.val) then
+                -- print("Drop (", k.id, k.val, ")")
+                goto continue
+            end
+
+            freplace = filter.replace_nodeid[k.id]
+            if freplace then
+                -- print("Replace (", k.id, " => ", freplace, ")")
+                k.id = freplace
+            end
 
             -- put the concat ops - make it like orig yang
             if val and (val:match('"') or val:match("'")) then
@@ -91,10 +104,17 @@ function _indent2(t, nsp, filter)
             else
                 local skip = false
                 for _,kids in pairs(k.node.kids) do
-                    if filter.remove_containing[kids.id] and
-                        kids.val == filter.remove_containing[kids.id] then
-                        -- print("Skip (", k.id, val, ")")
-                        skip = true
+                    fremov = filter.remove_containing[kids.id]
+                    if fremov then
+                        if fremov == '*' then
+                            skip = true
+                            -- print("Skip-any (", k.id, val, ")")
+                        else
+                            if fremov == utils.strip_quote(kids.val) then
+                                skip = true
+                                -- print("Skip (", k.id, val, ")")
+                            end
+                        end
                     end
                 end
                 if not skip then
@@ -103,6 +123,7 @@ function _indent2(t, nsp, filter)
                     print(sp:rep(nsp)..'}')
                 end
             end
+            ::continue::
         end
     end
 end

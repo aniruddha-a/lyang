@@ -7,6 +7,7 @@ function utils.trim(s) -- trim5 of lua-users
 end
 
 function utils.strip_quote(s)
+    if not s then return end
     local a = s:gsub('"','')
     a = a:gsub("'", '')
     return a

@@ -3,24 +3,37 @@ module snips {
     prefix 's';
 
     container S {
+        presence true;
         list l1 {
-          key k;
-          leaf k {
-            tailf:hidden internal; // remove me
-            type string;
-          }
-          leaf j {
-           type string;
-          }
+            key k;
+            leaf k {
+                tailf:hidden internal; // remove me
+                type string;
+            }
+            leaf j {
+                tailf:info "Helloj";
+                type string;
+            }
         }
 
         container K2 {
-            tailf:hidden internal;
-            // remove me
+            tailf:hidden internal; // remove me
         }
 
         leaf J2 {
-          type uint32;
+            tailf:info "HelloJ2";
+            type uint32;
         }
+    }
+
+    container opdata {
+      tailf:cdb-oper {
+        tailf:persistent true;
+      }
+      list op {
+         key k;
+         leaf k { type string; }
+         leaf l { type string; }
+      }
     }
 }
