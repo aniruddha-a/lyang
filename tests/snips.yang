@@ -1,3 +1,4 @@
+// Test filters
 module snips {
     namespace 'snips';
     prefix 's';
@@ -26,6 +27,7 @@ module snips {
         }
     }
 
+
     container opdata {
       tailf:cdb-oper {
         tailf:persistent true;
@@ -35,5 +37,11 @@ module snips {
          leaf k { type string; }
          leaf l { type string; }
       }
+    }
+
+    list forlater {
+       key k;
+       leaf k {type string;}
+       leaf j {type int32;}
     }
 }

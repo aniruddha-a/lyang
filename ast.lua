@@ -74,23 +74,27 @@ end
 -- With filters
 function _indent2(t, nsp, filter)
     local sp = ' '
-    local val
-    local fremov, fdrop, freplace
+    local val, comm_started
+    local fremov, fdrop, freplace, fcomment
 
     if t.kids then              -- kids can be empty blocks like: container C {}
         for _,k in ipairs(t.kids) do
             val = (k.val and k.val or '')
 
-            fdrop = filter.remove_node[k.id] 
-            if fdrop and fdrop == utils.strip_quote(k.val) then
-                -- print("Drop (", k.id, k.val, ")")
-                goto continue
+            if filter.remove_node then
+                fdrop = filter.remove_node[k.id]
+                if fdrop and fdrop == utils.strip_quote(k.val) then
+                    -- print("Drop (", k.id, k.val, ")")
+                    goto continue
+                end
             end
 
-            freplace = filter.replace_nodeid[k.id]
-            if freplace then
-                -- print("Replace (", k.id, " => ", freplace, ")")
-                k.id = freplace
+            if filter.replace_nodeid then
+                freplace = filter.replace_nodeid[k.id]
+                if freplace then
+                    -- print("Replace (", k.id, " => ", freplace, ")")
+                    k.id = freplace
+                end
             end
 
             -- put the concat ops - make it like orig yang
@@ -99,32 +103,51 @@ function _indent2(t, nsp, filter)
                 val = val:gsub("'%s+'", "' + '")
             end
 
+            if filter.commentout then
+                fcomment = filter.commentout[k.id] or nil
+                if fcomment and fcomment == utils.strip_quote(k.val) then
+                    -- print("Start-comment (", k.id, k.val, ")")
+                    print("/*")
+                    comm_started = true
+                end
+            end
+
+            -- write out the kids (if present) or the stmt terminator
             if not k.node then
                 print(sp:rep(nsp).. k.id ..' '.. val ..';')
             else
                 local skip = false
+                -- walk thru the kids to see if we need to skip this block
                 for _,kids in pairs(k.node.kids) do
-                    fremov = filter.remove_containing[kids.id]
-                    if fremov then
-                        if fremov == '*' then
-                            skip = true
-                            -- print("Skip-any (", k.id, val, ")")
-                        else
-                            if fremov == utils.strip_quote(kids.val) then
+                    if filter.remove_containing then
+                        fremov = filter.remove_containing[kids.id]
+                        if fremov then
+                            if fremov == '*' then
                                 skip = true
-                                -- print("Skip (", k.id, val, ")")
+                                -- print("Skip-any (", k.id, val, ")")
+                            else
+                                if fremov == utils.strip_quote(kids.val) then
+                                    skip = true
+                                    -- print("Skip (", k.id, val, ")")
+                                end
                             end
                         end
                     end
                 end
                 if not skip then
+
+
                     print(sp:rep(nsp).. k.id ..' '.. val ..' {')
                     _indent2(k.node, nsp + 4, filter)
                     print(sp:rep(nsp)..'}')
+
                 end
             end
+            
+            if comm_started then print("*/") comm_started = nil end
+
             ::continue::
-        end
+        end -- foreach kid
     end
 end
 
