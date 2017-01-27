@@ -143,7 +143,7 @@ function _indent2(t, nsp, filter)
 
                 end
             end
-            
+
             if comm_started then print("*/") comm_started = nil end
 
             ::continue::
