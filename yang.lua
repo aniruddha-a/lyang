@@ -20,6 +20,13 @@ function main()
             ast.indent_dump(tree, args.filter and args.filter[1] or nil) -- assume 1 filter for now
         end
     end
+    if args.output == 'cli' then
+        print("return {\n  set = {\n")
+        for mod,tree in pairs(modules.name) do
+            ast.cli_dump(tree)
+        end
+        print("  }\n}")
+    end
 end
 
 function handle_args()
@@ -28,8 +35,7 @@ function handle_args()
     optparse:flag("-d --debug", "Debug (once for indented-dump, twice for parser tokens)")
               :count '0-3'
               :target 'debug'
-    optparse:option("-o --output", "Output format.",
-                                   "(for now indented [comment stripped] dump)")
+    optparse:option("-o --output", "Output format (for now: 'cli') ")
     optparse:option("-P --path", "Module/sub-module include paths.")
               :count("*")
     optparse:option("-F --filter", "Apply filters")

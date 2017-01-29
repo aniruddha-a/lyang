@@ -1,0 +1,25 @@
+// To test the expansion of grouping at uses
+module tgrp {
+   namespace 'tgrp_ns';
+   prefix 'tpfx';
+
+   grouping G {
+      leaf l1 { type string; description "l1 strval"; }
+      leaf l2 { type uint32; description "l2 intval";}
+   }
+
+   container C1 {
+       uses G;
+       leaf l3 { type int32; description "l3 intval"; }
+   }
+
+   list L2 {
+      key name;
+
+      leaf name { type uint32; description "L2 name"; }
+      leaf val { type string; description "val string"; }
+      leaf data { type string; description "some data"; }
+   }
+
+    // grouping g2 { leaf lx { type string; } }
+}

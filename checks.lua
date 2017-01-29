@@ -3,6 +3,7 @@ local utils = require 'utils'
 local checks = {
    validation_errs = 0,
    modname         = nil, -- Name of the module/submodule we are processing
+   groupings       = {},
 }
 
 must_have_subs, allowed_subs, additional_checks  = {}, {}, {}
@@ -81,6 +82,10 @@ local function assert_ver1(t)
     end
 end
 
+local function expand_grouping(t)
+    checks.groupings[t.val] = t.node
+end
+
 -- ******************** List/table of all checks ****************
 
 -- Mandatory substatements
@@ -99,8 +104,8 @@ additional_checks['include'] = add_to_match_list
 
 additional_checks['yang-version'] = assert_ver1
 
+additional_checks['grouping'] = expand_grouping
 --[[
-actions['grouping'] = expand_grouping
 actions['augment'] = expand_augment
 ]]
 
@@ -533,7 +538,7 @@ function _apply_checks(n)
 
 ::only_additional::
 
-    if additional_checks[id] ~= nil then
+    if additional_checks[id] then
         additional_checks[id](n)
     end
 end

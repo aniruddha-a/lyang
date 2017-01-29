@@ -13,7 +13,7 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-CLI_DIR=cli/lua-linenoise/
+CLI_DIR=thirdparty/lua-linenoise/
 CLI_SO=$CLI_DIR/linenoise.so
 if [[ ! -e $CLI_SO ]]; then
     make -C $CLI_DIR

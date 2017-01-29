@@ -1,5 +1,5 @@
 
-package.cpath = package.cpath .. ';./lua-linenoise/?.so'
+package.cpath = package.cpath .. ';../thirdparty/lua-linenoise/?.so'
 local L = require 'linenoise'
 if not arg[1] then print [[ usage: ycli <cli-file> ]] os.exit(1) end
 local ctbl = dofile(arg[1])

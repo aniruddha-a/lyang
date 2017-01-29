@@ -1,4 +1,4 @@
-// Test filters
+// Test filters (for now filters is also dumped with -d - like a debug option)
 module snips {
     namespace 'snips';
     prefix 's';

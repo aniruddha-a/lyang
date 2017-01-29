@@ -8,4 +8,5 @@ Lua [LPeg](http://www.inf.puc-rio.br/~roberto/lpeg/) based [YANG](https://tools.
 
 # Utils/debug
 
-Using [pprint](https://github.com/jagt/pprint.lua) for debugging.
+- Using [pprint](https://github.com/jagt/pprint.lua) for debugging.
+- Using [lua-linenoise](https://github.com/hoelzro/lua-linenoise) for line edit/completion.

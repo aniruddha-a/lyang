@@ -1,0 +1,4 @@
+#!/bin/bash
+
+export LUA_CPATH='thirdparty/lua-linenoise/?.so'
+lua cli/ycli.lua $@

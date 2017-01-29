@@ -104,7 +104,7 @@ function matcher.run(modules, infile, debug)
             modules.name[modname] = tree
         end
     end
-    if debug > 1 then pp.pprint(tree) --[[ -dd ]] end
+    if debug > 1 --[[ -dd ]] then pp.pprint(tree) end
 
     -- Check if we had imports/includes and they need to be matched as well
     for mod,t in pairs(modules.name) do

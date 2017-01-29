@@ -1,0 +1,12 @@
+Parser:
+  - Handle: augment
+  Generation/output format:
+   - Capability to generate CLI file for all modules combined
+
+CLI:
+ - Save the user entered data and either persist to file/DB
+ - Add show: special commands to display current user entered data
+ - Add show interim: to show scratchpad data (uncommitted)
+ - Add commit to push/write to DB/file
+ - Add exit/quit - just for convenience
+
