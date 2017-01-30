@@ -6,6 +6,14 @@ function utils.trim(s) -- trim5 of lua-users
     return s:match'^%s*(.*%S)' or ''
 end
 
+function utils.getwords(s)
+    local words = {}
+    for w in s:gmatch('%S+') do
+        table.insert(words, w)
+    end
+    return words
+end
+
 function utils.strip_quote(s)
     if not s then return end
     local a = s:gsub('"','')

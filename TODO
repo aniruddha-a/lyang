@@ -1,7 +1,6 @@
 Parser:
   - Handle: augment
-  Generation/output format:
-   - Capability to generate CLI file for all modules combined
+  - Handle: namespace prefixed `uses` expansion (search + expand)
 
 CLI:
  - Save the user entered data and either persist to file/DB
@@ -9,4 +8,6 @@ CLI:
  - Add show interim: to show scratchpad data (uncommitted)
  - Add commit to push/write to DB/file
  - Add exit/quit - just for convenience
+ Advanced:
+  - Multiple leaf completion on the same command line one after another (under a list or container)
 
