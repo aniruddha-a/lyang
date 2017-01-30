@@ -2,8 +2,11 @@
 package.cpath = package.cpath .. ';../thirdparty/lua-linenoise/?.so'
 package.path  = package.path  .. ';../?.lua'
 
-local L     = require 'linenoise'
-local utils = require 'utils'
+local L        = require 'linenoise'
+local utils    = require 'utils'
+
+local prompt   = "lycli> "
+local histfile = '/tmp/.lyclihist'
 
 if not arg[1] then print [[ usage: ycli <cli-file> ]] os.exit(1) end
 
@@ -60,14 +63,12 @@ function ycli_complete(c, s)
 end
 
 function show_banner()
-    local bannerfile='cli/.banner'
+    local basedir    = utils.dirname(arg[0])
+    local bannerfile = basedir ..'/.banner'
     os.execute('cat '..bannerfile)
 end
 
 function main()
-    local prompt   = "lycli> "
-    local histfile = '.clihist.txt'
-
     L.loadhistory(histfile)
     L.setcompletion(ycli_complete)
 

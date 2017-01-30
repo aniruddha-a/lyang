@@ -1,5 +1,7 @@
 #!/bin/bash
 
+## Read as `Likely` ;-) 
+
 export LUA_CPATH='thirdparty/lua-linenoise/?.so'
 export LUA_PATH='?.lua'
 lua cli/ycli.lua $@

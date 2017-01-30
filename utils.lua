@@ -43,6 +43,14 @@ function utils.basename(p)
     return t[#t]
 end
 
+function utils.dirname(p)
+    local t   = p:split('/')
+    local dir = ''
+    for i=1,(#t-1) do dir = dir..t[i] end
+    if p:match('^/') then dir = '/' .. dir end
+    return ( dir == '' and '.' or dir )
+end
+
 function utils.find_file(mod)
     return utils.basedir .. '/' .. mod .. '.yang' --FIXME  hack use path
 end

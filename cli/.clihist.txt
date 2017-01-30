@@ -1,7 +1,0 @@
-set employee A1
-set system location Blr
-set employee A1 projects P1 duration 2
-set employee A1 salary 2
-set employee A1 projects P1 duration 2
-set employee Ani1 grade 2
-?
