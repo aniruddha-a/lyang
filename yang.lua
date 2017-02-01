@@ -1,3 +1,4 @@
+-- The Main driver
 local argp    = require 'thirdparty/argparse'
 local matcher = require 'matcher'
 local ast     = require 'ast'

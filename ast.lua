@@ -1,3 +1,4 @@
+-- AST handling
 local ast = {
         tree = nil,
         name = nil, -- basename of the file (module name)

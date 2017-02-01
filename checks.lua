@@ -1,3 +1,4 @@
+-- Validation - Enforce RFC6020 checks
 local utils = require 'utils'
 
 local checks = {

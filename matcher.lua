@@ -1,11 +1,11 @@
+-- The LPeg based recognizer/matcher
 local lpeg   = require 'lpeg'
 local pp     = require 'thirdparty/pprint'
 local utils  = require 'utils'
 local ast    = require 'ast'
 local checks = require 'checks' -- validations
 
-local matcher = {
-}
+local matcher = { }
 
 local function perror(msg)
     print('Error: '..msg)

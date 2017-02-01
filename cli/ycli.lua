@@ -1,9 +1,10 @@
-
+-- Main CLI (via linenoise)
 package.cpath = package.cpath .. ';../thirdparty/lua-linenoise/?.so'
 package.path  = package.path  .. ';../?.lua'
 
-local L        = require 'linenoise'
-local utils    = require 'utils'
+local L     = require 'linenoise'
+local utils = require 'utils'
+local compl = require 'compl'
 
 local prompt   = "lycli> "
 local histfile = '/tmp/.lyclihist'
@@ -14,52 +15,8 @@ local ctbl = dofile(arg[1])
 if not ctbl or type(ctbl) ~= 'table' then
     print("Failed to load cli-file")
     os.exit(1)
-end
-
-function ycli_complete(c, s)
-    local cp   = ctbl
-    local line = ''
-    local pw   = ''
-
-    words = utils.getwords(utils.trim(s))
-    local i = 1
-    while i <= #words do
-       w = words[i]
-       if cp[w] then
-           cp = cp[w]
-           line = line..' '..w
-           if cp.__key then -- skip list key
-               i = i + 1 -- XXX: to incr loop invariant we need while() instead of for()
-               w = words[i]
-               if w then
-                   line = line..' '..w
-               else
-                   print('\r\n Required: '..cp['__help_'..cp.__key])
-                L.addcompletion(c, utils.trim(line))
-                return
-               end
-           end
-       else
-           pw = w -- prev unfinished word
-       end
-       i = i + 1
-    end
-    if type(cp) == 'table' then
-        if pw and utils.trim(pw) ~= '' then
-            for k,_ in pairs(cp) do
-                if k:match('^'..pw) then -- only those which match the user pfx
-                    L.addcompletion(c, utils.trim(line..' '..k))
-                end
-            end
-        else
-            for k,_ in pairs(cp) do
-                if not k:match('^__') and k ~= cp.__key then -- skip internal fields
-                    L.addcompletion(c, utils.trim(line..' '..k))
-                end
-            end
-        end
-    end
-
+else
+    compl.init(ctbl)
 end
 
 function show_banner()
@@ -70,7 +27,7 @@ end
 
 function main()
     L.loadhistory(histfile)
-    L.setcompletion(ycli_complete)
+    L.setcompletion(compl.ycli_complete)
 
     local line = L.linenoise(prompt)
     while line do
