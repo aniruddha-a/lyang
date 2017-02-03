@@ -208,13 +208,18 @@ function _cli_dump(t, pval, nsp)
             val = (k.val and k.val or '')
             line = to_cli(k.id, val, pval)
             if line then
-                if k.id == 'container' or k.id == 'list' then
+                if k.id == 'container' then
+                    print(sp:rep(nsp).. line ..' = {')
+                    print(sp:rep(nsp).. '\t __is_container = true,')
+                    _cli_dump(k.node, val, nsp + 4)
+                    print(sp:rep(nsp)..'},')
+                elseif k.id == 'list' then
                     print(sp:rep(nsp).. line ..' = {')
                     _cli_dump(k.node, val, nsp + 4)
                     print(sp:rep(nsp)..'},')
                 else
                     print(sp:rep(nsp).. line ..',')
-                if k.node then _cli_dump(k.node, val, nsp + 4) end
+                    if k.node then _cli_dump(k.node, val, nsp + 4) end
                 end
             else
                 if k.node then _cli_dump(k.node, val, nsp + 4) end

@@ -33,7 +33,7 @@ function dump_cli()
     end
     print("return {")
     print("  show = { interim = {}}, commit = true, exit = true,\n") -- std cmds
-    print("  set = {\n")
+    print("  set = {\n   __is_container = true,")
     for mod,tree in pairs(modules.name) do
         ast.cli_dump(tree)
     end
