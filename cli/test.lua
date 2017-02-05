@@ -3,7 +3,7 @@
 -- from the yang parser with some CLI dump option
 return {
     set = {
-         __is_container = true
+         __container = 'set',
         employee = {
             __key = 'name', -- this is to skip the field (next)
             name = '',
@@ -20,16 +20,21 @@ return {
                   __help_duration = 'Project duration',
                 customer = '',
                   __help_customer = 'for cust',
+                priority = '',
+                  __help_priority = 'internal ',
             },
             personal = {
-                __is_container = true;
+                __container = 'personal';
                 married = '',
                    __help_married = 'Marital status (yes/no)',
                 age = '',
+                   __help_age = 'How old? cmon tell me',
+                address = '',
+                   __help_address = 'where d"ya live?'
             },
         },
         system = {
-                __is_container = true;
+                __container = 'system',
            hostname = '',
            location = '',
         }

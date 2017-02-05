@@ -17,21 +17,23 @@ function compl.ycli_complete(c, s)
     while i <= #words do
        w = words[i]
        if cp[w] then
-           if type(cp[w]) == 'table' then
+           if type(cp[w]) == 'table' then -- full word and in table
                cp = cp[w] -- advance
            else
                used[w] = true -- filter out
            end
            line = line..' '..w
-           if not cp.__is_container then
+           if not (cp.__container and w == cp.__container) then -- Not right after a container
                i = i + 1 -- XXX: to incr loop invariant we need while() instead of for()
                w = words[i]
-               if w then
+               if w then -- a value entered (non nil word)
                    line = line..' '..w
                else
-                   print('\r\n Required: '..cp['__help_'..cp.__key])
+                   local h = cp['__help_'..words[i-1]]
+                   if not h then h = cp['__help_'..cp.__key] end -- default to key's help (FIXME)
+                   print('\r\n Required: '..h)
                    L.addcompletion(c, utils.trim(line) .. ' ')
-                   return -- mandatory
+                   return -- force input
                end
            end
        else

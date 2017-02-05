@@ -190,11 +190,11 @@ function to_cli(i, v, p)
     if i == 'key' then
         return "__key = '".. v .. "'"
     elseif i == 'description' then
-        return "__help_"..p.." = '"..v.."'"
+        return "['__help_"..p.."'] = '"..utils.strip_quote(v).."'"
     elseif i == 'list' or i == 'container' then
-        return v
+        return "['"..v.."']"
     elseif i == 'leaf' or i == 'leaf-list' then
-        return v.." = '' " -- TODO type handle for leaf/leaf-list
+        return "['"..v.."'] = '' " -- TODO type handle for leaf/leaf-list
     end
     return nil
 end
@@ -210,7 +210,7 @@ function _cli_dump(t, pval, nsp)
             if line then
                 if k.id == 'container' then
                     print(sp:rep(nsp).. line ..' = {')
-                    print(sp:rep(nsp).. '\t __is_container = true,')
+                    print(sp:rep(nsp).. "\t __container = '"..k.val.."',")
                     _cli_dump(k.node, val, nsp + 4)
                     print(sp:rep(nsp)..'},')
                 elseif k.id == 'list' then
