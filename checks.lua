@@ -87,6 +87,24 @@ local function expand_grouping(t)
     checks.groupings[t.val] = t.node
 end
 
+local function ensure_key_on_cfg(t)
+    local subs        = t.node.kids
+    local is_config   = true
+    local key_present = false
+
+    for _,k in ipairs(subs) do
+        if k.id == 'config' and utils.strip_quote(k.val) == 'false' then
+            is_config = false
+        elseif k.id == 'key' then
+            key_present = true
+        end
+    end
+
+    if is_config and not key_present then
+        perror("'key' mandatory for lists representing config ('".. t.val .."')")
+    end
+end
+
 -- ******************** List/table of all checks ****************
 
 -- Mandatory substatements
@@ -97,15 +115,18 @@ must_have_subs['leaf']      = { 'type' }
 must_have_subs['leaf-list'] = { 'type' }
 
 -- Additional checks which do not fit under other categories
-additional_checks['module'] = check_module
-additional_checks['submodule'] = check_module
+additional_checks['module']       = check_module
+additional_checks['submodule']    = check_module
 
-additional_checks['import']  = add_to_match_list
-additional_checks['include'] = add_to_match_list
+additional_checks['import']       = add_to_match_list
+additional_checks['include']      = add_to_match_list
 
 additional_checks['yang-version'] = assert_ver1
 
-additional_checks['grouping'] = expand_grouping
+additional_checks['grouping']     = expand_grouping
+
+additional_checks['list']         = ensure_key_on_cfg
+
 --[[
 actions['augment'] = expand_augment
 ]]

@@ -1,0 +1,24 @@
+// For CLI test
+module employee {
+    namespace 'http://lyang.com/employee';
+    prefix employee;
+
+    list employee {
+        key name;
+        leaf name { type string; description 'Employee name'; }
+        leaf grade { type uint8; description 'Grade'; }
+        leaf salary { type int32; description 'CTC'; }
+        list projects {
+            key name;
+            leaf name { type string; description 'Project name'; }
+            leaf duration { type uint16; description 'Project duration (weeks)'; }
+            leaf customer { type string; description 'Customer name'; }
+            leaf priority { type int32; description 'Project priority'; }
+        }
+        container personal {
+            leaf married { type boolean; description 'Marital status';}
+            leaf age { type uint8; description 'Age';}
+            leaf address { type string; description 'Address';}
+        }
+    }
+}

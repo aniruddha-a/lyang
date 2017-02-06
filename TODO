@@ -8,6 +8,9 @@ CLI:
  - Add show interim: to show scratchpad data (uncommitted)
  - Add commit to push/write to DB/file
  - Add exit/quit - just for convenience
- Advanced:
-  - Multiple leaf completion on the same command line one after another (under a list or container)
+ - Validation** and storage
+        - Handling when and must statements
+        - Maybe something to convert XPath to LPath (our) ?
 
+DB:
+ - Pick one with pub-sub
