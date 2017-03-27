@@ -186,6 +186,7 @@ function is_config(t)
     return true
 end
 
+-- we are skipping choice/case/when/must here!
 function to_cli(i, v, p)
     if i == 'key' then
         return "__key = '".. v .. "'"

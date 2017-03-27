@@ -8,8 +8,13 @@ CLI:
  - Add show interim: to show scratchpad data (uncommitted)
  - Add commit to push/write to DB/file
  - Add exit/quit - just for convenience
+ - Maybe instead of .cli we shud create a .yo (common obj format kinda?)
+ - ** choice/case statements must be collapsed in the generated CLI tables
  - Validation** and storage
-        - Handling when and must statements
+        - Create a data table, which will be similar in structure to CLI/schema
+          but to hold instances of user entered data - this can also be
+          persisted to files and read back
+        - Handling when and must statements (when walking the data table)
         - Maybe something to convert XPath to LPath (our) ?
 
 DB:

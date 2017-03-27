@@ -1,0 +1,36 @@
+// test choice/case for CLI
+module ccase {
+    namespace 'ani.com/ccase';
+    prefix cc;
+
+    container menu {
+
+        leaf item {
+          type enumeration {
+             enum drink;
+             enum main;
+             enum starter;
+          }
+        }
+        choice pick-some {
+            case raw {
+                when 'item = starter';
+                leaf caesar-salad { type uint8; }
+                leaf garden-green { type uint8; }
+                leaf fruit-salad { type uint8; }
+            }
+            case drink {
+                when 'item = drink';
+                leaf bloody-mary { type uint8; }
+                leaf mojito { type uint8; }
+            }
+            case cooked {
+                when 'item = main';
+                leaf paratha { type uint8; }
+                leaf biryani { type uint8; }
+                leaf pulao { type uint8; }
+            }
+        }
+
+    }
+}

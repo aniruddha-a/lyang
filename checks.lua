@@ -47,7 +47,8 @@ local function check_module(t)
         end
         if k.id == 'revision' then
             revision_seen = true
-            if not k.val:match('^%d%d%d%d[-]%d%d[-]%d%d$') then
+            local val = utils.strip_quote(k.val)
+            if not val:match('^%d%d%d%d[-]%d%d[-]%d%d$') then
                 perror("revision date should be of the form: YYYY-MM-DD ("..k.val..")")
             end
             table.insert(rev, k.val) -- create a revisions table
@@ -218,6 +219,7 @@ allowed_subs['typedef'] = {
 
 allowed_subs['type'] = {
     bit                  = true,
+    base                 = true, -- FIXME: only when the type is identityref !
     default              = true,
     enum                 = true,
     length               = true,
