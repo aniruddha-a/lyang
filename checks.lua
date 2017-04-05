@@ -5,6 +5,7 @@ local checks = {
    validation_errs = 0,
    modname         = nil, -- Name of the module/submodule we are processing
    groupings       = {},
+   augments        = {},
 }
 
 must_have_subs, allowed_subs, additional_checks  = {}, {}, {}
@@ -84,8 +85,12 @@ local function assert_ver1(t)
     end
 end
 
-local function expand_grouping(t)
+local function store_grouping(t)
     checks.groupings[t.val] = t.node
+end
+
+local function store_grouping(t)
+    checks.augments[t.val] = t.node
 end
 
 local function ensure_key_on_cfg(t)
@@ -124,7 +129,8 @@ additional_checks['include']      = add_to_match_list
 
 additional_checks['yang-version'] = assert_ver1
 
-additional_checks['grouping']     = expand_grouping
+additional_checks['grouping']     = store_grouping
+additional_checks['augment']      = store_augment
 
 additional_checks['list']         = ensure_key_on_cfg
 
@@ -220,6 +226,7 @@ allowed_subs['typedef'] = {
 allowed_subs['type'] = {
     bit                  = true,
     base                 = true, -- FIXME: only when the type is identityref !
+    ['fraction-digits']  = true, -- FIXME: only when type is decimal64
     default              = true,
     enum                 = true,
     length               = true,

@@ -3,6 +3,7 @@ local argp    = require 'thirdparty/argparse'
 local matcher = require 'matcher'
 local ast     = require 'ast'
 local pp      = require 'thirdparty/pprint'
+local utils   = require 'utils'
 
 local args
 
@@ -16,7 +17,8 @@ function dump_debug()
         if args.debug > 0 then --  ( -d )
             local pfx = modules.prefix[mod] and modules.prefix[mod] or "<none>"
             print("Dumping: '".. mod.. "' (".. pfx ..")")
-            ast.indent_dump(tree, args.filter and args.filter[1] or nil) -- assume 1 filter for now
+            ast.indent_dump(tree, args.filter and args.filter[1]
+                                               or nil) -- assume 1 filter file for now
         end
     end
 end
@@ -28,9 +30,10 @@ function dump_cli()
     local old_print=nil
     if args.file then
         old_print=print
-        io.output(args.file)
+        io.output(args.file) -- redirect stdout
         print=function(...) io.write(table.concat({...},' '),'\n') end
     end
+    print("-- lyang 0.1: from "..args.input.." @ "..os.date())
     print("return {")
     print("  show = { interim = {}}, commit = true, exit = true,\n") -- std cmds
     print("  set = {\n   __container = 'set',")
@@ -45,6 +48,7 @@ function dump_cli()
 end
 
 function main()
+    utils.set_search_path(args.path, args.input)
     matcher.run(modules, args.input, args.debug)
     dump_debug()
     dump_cli()

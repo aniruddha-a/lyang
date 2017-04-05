@@ -1,6 +1,8 @@
 -- Miscellaneous utils
 local utils = {
-    not_yet_matched = '__lyang_NYM'
+    not_yet_matched = '__lyang_NYM',
+    search_paths    = {},
+    mod_dirname     = nil, -- main module dir
 }
 
 function utils.trim(s) -- trim5 of lua-users
@@ -46,14 +48,43 @@ end
 
 function utils.dirname(p)
     local t   = p:split('/')
-    local dir = ''
-    for i=1,(#t-1) do dir = dir..t[i] end
+    local dir = t[1]
+    for i=2,(#t-1) do dir = dir..'/'..t[i] end
     if p:match('^/') then dir = '/' .. dir end
     return ( dir == '' and '.' or dir )
 end
 
+local function file_exists(name)
+    local f = io.open(name,"r")
+    if f ~= nil then
+        io.close(f)
+        return true
+    else
+        return false
+    end
+end
+
 function utils.find_file(mod)
-    return utils.basedir .. '/' .. mod .. '.yang' --FIXME  hack use path
+    -- Check the same dir as module
+    local nam = utils.mod_dirname .. '/' .. mod .. '.yang'
+    if file_exists(nam) then return nam end
+    --
+    -- Check std modules
+    local nam = 'std/' .. mod .. '.yang'
+    if file_exists(nam) then return nam end
+
+    -- Check paths in the given order
+    for _,v in ipairs(utils.search_paths) do
+        nam = v .. '/' .. mod .. '.yang'
+        if file_exists(nam) then return nam end
+    end
+    print("Error: Failed to find '"..mod.."'")
+    os.exit(1)
+end
+
+function utils.set_search_path(pt, mainmod)
+    utils.search_paths = pt
+    utils.mod_dirname  = utils.dirname(mainmod) -- set main module's dir
 end
 
 return utils

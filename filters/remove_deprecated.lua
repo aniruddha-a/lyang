@@ -1,5 +1,5 @@
 return {
-  remove_containing = {
-   status = 'deprecated',
-  }
+    remove_containing = {
+        status = 'deprecated',
+    }
 }

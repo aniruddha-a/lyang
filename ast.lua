@@ -153,7 +153,16 @@ function _indent_f(t, nsp, filter)
     end
 end
 
-function _expand_inline(t)
+function _expand_inline_augment(t)
+    --[[
+    --for every augment in the list found
+    --check where they belong (search the loaded modules list)
+    --and expand inline
+    --]]
+
+end
+
+function _expand_inline_grouping(t)
     if t.kids then              -- kids can be empty blocks like: container C {}
         for i,k in ipairs(t.kids) do
             if k.id == 'grouping' then
@@ -171,7 +180,7 @@ function _expand_inline(t)
         end
         for _,k in ipairs(t.kids) do
             if k.node then
-                _expand_inline(k.node)
+                _expand_inline_grouping(k.node)
             end
         end
     end
@@ -239,7 +248,8 @@ function ast.indent_dump(t, ff)
 end
 
 function ast.cli_dump(t)
-    _expand_inline(t)
+    _expand_inline_grouping(t)
+    _expand_inline_augment(t)
     return _cli_dump(t, nil, 0)
 end
 
