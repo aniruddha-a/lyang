@@ -1,0 +1,20 @@
+// To demonstrate config inheritence
+module inherit {
+   namespace "inh";
+   prefix "i";
+
+   container C1 {  // <-- Level 2
+       config false;
+
+       container C2 { // <-- Level 1
+
+           list L1 {
+               leaf a { type string; }
+               leaf b { type string; }
+           }
+
+       }
+
+   }
+
+}

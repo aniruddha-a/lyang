@@ -15,6 +15,10 @@ local function perror(msg)
     checks.validation_errs = checks.validation_errs + 1
 end
 
+local function pnotice(msg)
+    print('Note: '..msg)
+end
+
 -- Module and revision checks
 local function check_module(t)
     if t.val ~= checks.modname then
@@ -98,7 +102,7 @@ local function ensure_key_on_cfg(t)
     local is_config   = true
     local key_present = false
 
-    for _,k in ipairs(subs) do
+    for _,k in ipairs(subs) do -- foreach sub-statements
         if k.id == 'config' and utils.strip_quote(k.val) == 'false' then
             is_config = false
         elseif k.id == 'key' then
@@ -107,7 +111,24 @@ local function ensure_key_on_cfg(t)
     end
 
     if is_config and not key_present then
-        perror("'key' mandatory for lists representing config ('".. t.val .."')")
+        local node  = t.val
+        local level = 1
+
+        -- Keep moving up the tree, and check if there were a 'config false'
+        -- so that we can ensure this list represents operational data
+        t = t.node.parent
+        while t do
+            for _,k in ipairs(t.kids) do
+                if k.id == 'config' and utils.strip_quote(k.val) == 'false' then
+                    pnotice("'list "..node.."' - operational (inherit from level "..level..")")
+                    return
+                end
+            end
+            t     = t.parent
+            level = level + 1
+        end
+
+        perror("'key' mandatory for lists representing config ('".. node .."')")
     end
 end
 
