@@ -1,0 +1,8 @@
+submodule sub-grp {
+   belongs-to tgrp2;
+
+   grouping Gtst {
+      leaf l1 { type string; }
+      leaf l2 { type uint32; }
+   }
+}

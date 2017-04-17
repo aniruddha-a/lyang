@@ -1,0 +1,12 @@
+module tgrp2 {
+  namespace 't.g2';
+  prefix 't2';
+
+  include sub-grp;
+ 
+  container C1 {
+     uses Gtst;
+     leaf l3 { type string; }
+  }
+
+}

@@ -3,8 +3,8 @@ local ast = {
         tree = nil,
         name = nil, -- basename of the file (module name)
 }
-local utils = require 'utils'
-local checker = require 'checks'
+local utils  = require 'utils'
+local checks = require 'checks'
 
 function ast.getnode(p)
     return { kids={}, parent=p }
@@ -136,13 +136,11 @@ function _indent_f(t, nsp, filter)
                         end
                     end
                 end
+
                 if not skip then
-
-
                     print(sp:rep(nsp).. k.id ..' '.. val ..' {')
                     _indent_f(k.node, nsp + 4, filter)
                     print(sp:rep(nsp)..'}')
-
                 end
             end
 
@@ -153,7 +151,7 @@ function _indent_f(t, nsp, filter)
     end
 end
 
-function _expand_inline_augment(t)
+function _expand_inplace_augment(t)
     --[[
     --for every augment in the list found
     --check where they belong (search the loaded modules list)
@@ -162,13 +160,13 @@ function _expand_inline_augment(t)
 
 end
 
-function _expand_inline_grouping(t)
+function _expand_inplace_grouping(t)
     if t.kids then              -- kids can be empty blocks like: container C {}
         for i,k in ipairs(t.kids) do
             if k.id == 'grouping' then
                 table.remove(t.kids, i)
             elseif k.id == 'uses' then
-                cg = checker.groupings[k.val]
+                cg = checks.groupings[k.val]
                 assert(cg, 'No such group found: '.. k.val)
                 table.remove(t.kids, i) -- replace uses with grouping
                 local j = i
@@ -180,7 +178,7 @@ function _expand_inline_grouping(t)
         end
         for _,k in ipairs(t.kids) do
             if k.node then
-                _expand_inline_grouping(k.node)
+                _expand_inplace_grouping(k.node)
             end
         end
     end
@@ -248,9 +246,13 @@ function ast.indent_dump(t, ff)
 end
 
 function ast.cli_dump(t)
-    _expand_inline_grouping(t)
-    _expand_inline_augment(t)
     return _cli_dump(t, nil, 0)
+end
+
+function ast.expand_inplace(t)
+    _expand_inplace_grouping(t)
+    -- TODO: expand includes  as well ? (submodules will then be empty/removed?)
+    _expand_inplace_augment(t)
 end
 
 return ast

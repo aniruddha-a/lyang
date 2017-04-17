@@ -8,7 +8,10 @@ local checks = {
    augments        = {},
 }
 
-must_have_subs, allowed_subs, additional_checks  = {}, {}, {}
+local must_have_subs    = {}
+local allowed_subs      = {}
+local additional_checks = {}
+local mark              = {}
 
 local function perror(msg)
     print('Error: '..msg)
@@ -16,7 +19,7 @@ local function perror(msg)
 end
 
 local function pnotice(msg)
-    print('Note: '..msg)
+    print("'"..checks.modname.."': Note: "..msg)
 end
 
 -- Module and revision checks
@@ -39,9 +42,6 @@ local function check_module(t)
                 end
             end
             header_seen = true
-        end
-        if k.id == 'prefix' then
-            checks.modules.prefix[checks.modname] = utils.strip_quote(k.val)
         end
         if k.id == 'import' or k.id == 'include' then
             if meta_seen or revision_seen then
@@ -68,6 +68,7 @@ local function check_module(t)
     end
 end
 
+-- Called after the initial match of module/submodule to load the import/includes
 local function add_to_match_list(t)
     local name = utils.strip_quote(t.val)
     checks.modules.name[name] = utils.not_yet_matched
@@ -75,7 +76,7 @@ local function add_to_match_list(t)
     if not t.node then return end  -- No kids, e.g: include submod;
 
     local subs = t.node.kids
-    for _,k in ipairs(subs) do
+    for _,k in ipairs(subs) do -- If the modules were imported with a different prefix ... TODO
         if k.id == 'prefix' then
             local pfx = utils.strip_quote(k.val)
             checks.modules.prefix[pfx] = utils.not_yet_matched
@@ -93,7 +94,7 @@ local function store_grouping(t)
     checks.groupings[t.val] = t.node
 end
 
-local function store_grouping(t)
+local function store_augment(t)
     checks.augments[t.val] = t.node
 end
 
@@ -145,19 +146,13 @@ must_have_subs['leaf-list'] = { 'type' }
 additional_checks['module']       = check_module
 additional_checks['submodule']    = check_module
 
-additional_checks['import']       = add_to_match_list
-additional_checks['include']      = add_to_match_list
-
 additional_checks['yang-version'] = assert_ver1
-
-additional_checks['grouping']     = store_grouping
-additional_checks['augment']      = store_augment
 
 additional_checks['list']         = ensure_key_on_cfg
 
---[[
-actions['augment'] = expand_augment
-]]
+-- Make a note/store location of..
+mark['grouping'] = store_grouping
+mark['augment']  = store_augment
 
 -- Allowed substatements (only these can appear under its parent [other than namespaced ones])
 allowed_subs['module'] = {
@@ -597,9 +592,7 @@ end
 
 function _run(t)
     for _,k in ipairs(t.kids) do
-        -- if k.node then
-            _apply_checks(k)
-        -- end
+        _apply_checks(k)
     end
     for _,k in ipairs(t.kids) do
         if k.node then
@@ -608,10 +601,9 @@ function _run(t)
     end
 end
 
-function checks.run(ast, modules)
-    local t        = ast.tree
-    checks.modname = ast.name
-    checks.modules = modules
+function checks.run(tree, name)
+    local t        = tree
+    checks.modname = name
 
     checks.validation_errs = 0
     _run(t)
@@ -620,6 +612,50 @@ function checks.run(ast, modules)
     else
         return true
     end
+end
+
+function _mark_nodes(t)
+    local id = t.id
+    if mark[id] then
+        mark[id](t)
+    end
+end
+
+function _do_mark(t)
+    for _,k in ipairs(t.kids) do
+        _mark_nodes(k)
+    end
+    for _,k in ipairs(t.kids) do
+        if k.node then
+            _do_mark(k.node)
+        end
+    end
+end
+
+-- Initial (minimal) load/check - this is required to tell tha
+-- matcher which included submodules/imports are to be matched
+-- Also, stores locations of grouping/augments
+function checks.load_sub(ast, modules)
+    local t        = ast.tree
+    checks.modname = ast.name
+    checks.modules = modules
+    local name     = nil
+
+    for _,k in ipairs(t.kids) do
+        if k.id == 'module' or k.id == 'submodule' then
+            name = utils.strip_quote(k.val)
+            for _,s in ipairs(k.node.kids) do
+                if s.id == 'import' or s.id == 'include' then
+                    add_to_match_list(s)
+                elseif s.id == 'prefix' then
+                    checks.modules.prefix[name] = utils.strip_quote(s.val)
+                end
+            end
+            goto mark_nodes
+        end
+    end
+    ::mark_nodes::
+    _do_mark(t)
 end
 
 return checks

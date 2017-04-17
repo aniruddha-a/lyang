@@ -52,12 +52,9 @@ function _domatch(name, data)
     else
         if n == #data then
             print("'"..name.."': Matched entirely")
-            if checks.run(ast, matcher.modules) then
-                print("'"..name.."': Validated successfully ")
-                return ast.tree
-            else
-                print("'"..name.."': "..checks.validation_errs .. " Validation errors found")
-            end
+            -- Load only the import/includes, so that we can continue further matching
+            checks.load_sub(ast, matcher.modules)
+            return ast.tree
         end
     end
     return nil
@@ -81,9 +78,12 @@ local function _read_file(infile)
     end
 end
 
-function matcher.run(modules, infile, debug)
+function matcher.run(modules, args)
 
     matcher.modules = modules
+
+    local infile  = args.input
+    local debug   = args.debug
 
     local modname = _get_modname(infile)
     local data    = _read_file(infile)
@@ -95,7 +95,7 @@ function matcher.run(modules, infile, debug)
     end
     --
     -- Match and load the main module
-    ast.init(modname, debug > 1 and true or false)
+    ast.init(modname, debug > 2 and true or false)
     tree = _domatch(modname, data)
     if tree then
         if modules.name[modname] ~= nil then
@@ -104,19 +104,19 @@ function matcher.run(modules, infile, debug)
             modules.name[modname] = tree
         end
     end
-    if debug > 1 --[[ -dd ]] then pp.pprint(tree) end
+    if debug > 2 --[[ -ddd ]] then pp.pprint(tree) end
 
     -- Check if we had imports/includes and they need to be matched as well
     for mod,t in pairs(modules.name) do
         if t == utils.not_yet_matched then
             print("'"..modname.."': Requires '" .. mod .. "'")
-            ast.init(mod, debug > 1 and true or false)
+            ast.init(mod, debug > 2 and true or false)
             data = _read_file(utils.find_file(mod))
             if data then
                 tree = _domatch(mod, data)
                 if tree then
                     modules.name[mod] = tree  -- as per Lua its ok to modify while walk, no new additions thou
-                    if debug > 1 then pp.pprint(tree) --[[ -dd ]] end
+                    if debug > 2 then pp.pprint(tree) --[[ -ddd ]] end
                 end
             else
                 perror("Failed to read: ".. utils.find_file(mod))

@@ -1,3 +1,7 @@
+Next:
+   - Augment expansion
+   - Expand 'include's also (submod) ?
+
 Parser:
   - Handle: augment
   - Handle: namespace prefixed `uses` expansion (search + expand)
@@ -7,9 +11,8 @@ CLI:
  - Add show: special commands to display current user entered data
  - Add show interim: to show scratchpad data (uncommitted)
  - Add commit to push/write to DB/file
- - Add exit/quit - just for convenience
  - Maybe instead of .cli we shud create a .yo (common obj format kinda?)
- - ** choice/case statements must be collapsed in the generated CLI tables
+ - case statements - exclude [dynamically] those leafs belonging to different case
  - Validation** and storage
         - Create a data table, which will be similar in structure to CLI/schema
           but to hold instances of user entered data - this can also be
