@@ -166,7 +166,7 @@ function _expand_inplace_grouping(t)
             if k.id == 'grouping' then
                 table.remove(t.kids, i)
             elseif k.id == 'uses' then
-                cg = checks.groupings[k.val]
+                cg = checks.groupings[utils.strip_ns(k.val)] -- FIXME: assume no collision across NS
                 assert(cg, 'No such group found: '.. k.val)
                 table.remove(t.kids, i) -- replace uses with grouping
                 local j = i

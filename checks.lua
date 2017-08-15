@@ -14,7 +14,7 @@ local additional_checks = {}
 local mark              = {}
 
 local function perror(msg)
-    print('Error: '..msg)
+    print('Error: '.. "'"..checks.modname.."': " ..msg)
     checks.validation_errs = checks.validation_errs + 1
 end
 
@@ -92,6 +92,7 @@ end
 
 local function store_grouping(t)
     checks.groupings[t.val] = t.node
+    -- print("===> STORED grouping: ", t.val)
 end
 
 local function store_augment(t)
@@ -422,6 +423,7 @@ allowed_subs['input'] = {
     list          = true,
     typedef       = true,
     uses          = true,
+    description   = true, -- Not in RFC, coz we perform checks post grouping expansion!
 }
 
 allowed_subs['output'] =  {
@@ -434,6 +436,7 @@ allowed_subs['output'] =  {
     list          = true,
     typedef       = true,
     uses          = true,
+    description   = true, -- Not in RFC, coz we perform checks post grouping expansion!
 }
 
 allowed_subs['notification'] =  {
@@ -568,7 +571,7 @@ function _apply_checks(n)
     for _,k in ipairs(t.kids) do
         if not chk_list[k.id] and not k.id:match(':') then -- ignore namespaced kids
             perror("'"..k.id.."' cannot appear as child of '"..id.."' ("
-                        ..id.." "..val..")")
+                        ..id.." ".. (val or '<>') ..")")
         end
         if must_have_subs[id] then
             if not seen[k.id] then seen[k.id] = true end
@@ -591,6 +594,7 @@ function _apply_checks(n)
 end
 
 function _run(t)
+    if not t.kids then return end -- TODO: How!? scary!
     for _,k in ipairs(t.kids) do
         _apply_checks(k)
     end

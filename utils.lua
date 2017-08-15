@@ -87,4 +87,15 @@ function utils.set_search_path(pt, mainmod)
     utils.mod_dirname  = utils.dirname(mainmod) -- set main module's dir
 end
 
+function utils.namespaced(s)
+    return s:match(':') and true or false
+end
+
+function utils.strip_ns(s)
+    if utils.namespaced(s) then
+        return s:split()[2] -- default delim ':'
+    else
+        return s
+    end
+end
 return utils
