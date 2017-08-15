@@ -1,0 +1,33 @@
+module nestgrp {
+   namespace 'nest.grp';
+   prefix 'ng';
+
+
+   grouping g-outer {
+       grouping g-inner {
+           leaf in-inner2 { type string; }
+       }
+
+
+       container a1 {
+           uses g-inner;
+       }
+       leaf on-outer-1 { type string; }
+       container a2 {
+           uses g-inner;
+       }
+   }
+
+   rpc test {
+     input {
+       leaf in { type string; }
+     }
+     output {
+       leaf out { type string; }
+     }
+   }
+
+   container the-c {
+       uses g-outer;
+   }
+}
