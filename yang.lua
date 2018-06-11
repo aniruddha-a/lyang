@@ -64,6 +64,13 @@ function main()
     if args.debug == 1 then -- ( -d )
         dump_tree() -- unexpanded tree
     end
+    -- test
+    for mod,t in pairs(modules.name) do
+        if t == utils.not_yet_matched then
+            print("XXX", mod,": Not matched")
+        end
+    end
+    -- test
     do_validate()
     if args.debug == 2 then -- ( -dd )
         dump_tree() -- expanded tree

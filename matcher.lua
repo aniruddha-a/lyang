@@ -36,7 +36,7 @@ function _domatch(name, data)
     -- We dont need captures for the foll - remove after debug
     local stmtend    = _ * C(P';') / function(...) ast.add('END',...) end
     local obrace     = _ * C(P'{') / function(...) ast.add('OPEN',...) end
-    local cbrace     = _ * C(P'}') / function(...) ast.add('CLOSE',...) end
+    local cbrace     = _ * C(P'}') * _ / function(...) ast.add('CLOSE',...) end
 
     local yang = P({
         "block",
@@ -50,13 +50,14 @@ function _domatch(name, data)
     if not n then
         print("Failed to match '"..name.."'.", "stop @:"..pos);
     else
-        if n == #data then
+        if n >= #data then
             print("'"..name.."': Matched entirely")
             -- Load only the import/includes, so that we can continue further matching
             checks.load_sub(ast, matcher.modules)
             return ast.tree
         end
     end
+    perror("'"..name.."': Failed to match")
     return nil
 end
 
@@ -107,22 +108,40 @@ function matcher.run(modules, args)
     if debug > 2 --[[ -ddd ]] then pp.pprint(tree) end
 
     -- Check if we had imports/includes and they need to be matched as well
-    for mod,t in pairs(modules.name) do
-        if t == utils.not_yet_matched then
-            print("'"..modname.."': Requires '" .. mod .. "'")
-            ast.init(mod, debug > 2 and true or false)
-            data = _read_file(utils.find_file(mod))
-            if data then
-                tree = _domatch(mod, data)
-                if tree then
-                    modules.name[mod] = tree  -- as per Lua its ok to modify while walk, no new additions thou
-                    if debug > 2 then pp.pprint(tree) --[[ -ddd ]] end
-                end
-            else
-                perror("Failed to read: ".. utils.find_file(mod))
-            end
+    -- XXX: Keep a sorted, local list of module names so that we dont mess
+    --      up the original, with insertions during walk
+
+    ::recheck::
+
+    local modarr={}
+    for k,v in pairs(modules.name) do
+        if v == utils.not_yet_matched then
+            table.insert(modarr, k)
         end
     end
+    if next(modarr) == nil then
+        print("\n\n--DONE--\n\n")
+        return
+    end
+    table.sort(modarr) -- predictable order
+    for _,mod in ipairs(modarr) do
+        t = modules.name[mod]
+        print("'"..modname.."': Requires '" .. mod .. "'")
+        ast.init(mod, debug > 2 and true or false)
+        data = _read_file(utils.find_file(mod))
+        if data then
+            tree = _domatch(mod, data)
+            if tree then
+                modules.name[mod] = tree  -- as per Lua its ok to modify while walk, no new additions thou
+                if debug > 2 then pp.pprint(tree) --[[ -ddd ]] end
+            end
+        else
+            perror("Failed to read: ".. utils.find_file(mod))
+        end
+    end
+
+    goto recheck -- I know!, E.W. Dijkstra would not like this! :-/
+
 end
 
 return matcher

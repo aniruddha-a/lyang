@@ -58,6 +58,42 @@ function compl.ycli_complete(c, s)
     end
 end
 
+function compl.list_compls(s)
+    local cp    = compl.ctbl
+    local pw    = '' -- prev word
+    local words = utils.getwords(utils.trim(s))
+
+    local i = 1
+    while i <= #words do
+       w = words[i]
+       if cp[w] then
+           if type(cp[w]) == 'table' then -- full word and in table
+               cp = cp[w] -- advance
+           end
+       else
+           pw = w -- prev unfinished word
+       end
+       i = i + 1
+    end
+    if type(cp) == 'table' then
+        if pw and utils.trim(pw) ~= '' then
+            print('\r\n Possible completions:')
+            for k,_ in pairs(cp) do
+                if k:match('^'..pw) then -- only those which match the user pfx
+                    print('',k)
+                end
+            end
+        else
+            print('\r\n Possible completions:')
+            for k,_ in pairs(cp) do
+                if not k:match('^__') and k ~= cp.__key then -- skip internal fields
+                    print('',k)
+                end
+            end
+        end
+    end
+end
+
 function compl.init(t)
     compl.ctbl = t
 end

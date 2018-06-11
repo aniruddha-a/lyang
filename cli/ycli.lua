@@ -33,20 +33,20 @@ function main()
     while line do
         line = utils.trim(line)
         local n = #line
+        --[[
         if n > 0 then
+        end
+        ]]
+        if line:sub(n,n) == '?' then
+            l = line:sub(1, n-1)
+            compl.list_compls(l)
+        else
             L.historyadd(line)
             print('\r\n Adding ['..line..']')
             L.historysave(histfile)
+            --local f = gfn[line]
+            --if f then f(line) else print 'Invalid/Incomplete command' end
         end
-        --[[
-        if line:sub(n,n) == '?' then
-        dumpcompletions(line:sub(1, n-1))
-        else
-        local f = gfn[line]
-        if f then f(line) else print 'Invalid/Incomplete command' end
-        L.historyadd(line)
-        end
-        ]]
         line = L.linenoise(prompt)
     end
 end

@@ -1,0 +1,1 @@
+/lyang -o cli -f /tmp/a.cli tests/employee.yang

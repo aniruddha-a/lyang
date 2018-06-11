@@ -71,6 +71,9 @@ end
 -- Called after the initial match of module/submodule to load the import/includes
 local function add_to_match_list(t)
     local name = utils.strip_quote(t.val)
+    if type(checks.modules.name[name]) == 'table' then
+        return -- Already matched
+    end
     checks.modules.name[name] = utils.not_yet_matched
 
     if not t.node then return end  -- No kids, e.g: include submod;
@@ -78,7 +81,7 @@ local function add_to_match_list(t)
     local subs = t.node.kids
     for _,k in ipairs(subs) do -- If the modules were imported with a different prefix ... TODO
         if k.id == 'prefix' then
-            local pfx = utils.strip_quote(k.val)
+            local pfx = utils.strip_quote(k.val) -- FIXME: if 'name' was already pres
             checks.modules.prefix[pfx] = utils.not_yet_matched
         end
     end
@@ -92,7 +95,6 @@ end
 
 local function store_grouping(t)
     checks.groupings[t.val] = t.node
-    -- print("===> STORED grouping: ", t.val)
 end
 
 local function store_augment(t)
