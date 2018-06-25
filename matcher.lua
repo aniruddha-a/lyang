@@ -120,7 +120,7 @@ function matcher.run(modules, args)
         end
     end
     if next(modarr) == nil then
-        print("\n\n--DONE--\n\n")
+        print("\n\n--MATCHING COMPLETE--\n\n")
         return
     end
     table.sort(modarr) -- predictable order
@@ -140,7 +140,7 @@ function matcher.run(modules, args)
         end
     end
 
-    goto recheck -- I know!, E.W. Dijkstra would not like this! :-/
+    goto recheck -- I know, E.W. Dijkstra would not like this! :-/
 
 end
 

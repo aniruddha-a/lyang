@@ -160,25 +160,50 @@ function _expand_inplace_augment(t)
 
 end
 
-function _expand_inplace_grouping(t)
-    if t.kids then              -- kids can be empty blocks like: container C {}
-        for i,k in ipairs(t.kids) do
-            if k.id == 'grouping' then
-                table.remove(t.kids, i)
-            elseif k.id == 'uses' then
-                cg = checks.groupings[utils.strip_ns(k.val)] -- FIXME: assume no collision across NS
-                assert(cg, 'No such group found: '.. k.val)
-                table.remove(t.kids, i) -- replace uses with grouping
-                local j = i
-                for p,_ in pairs(cg.kids) do -- copy over in the same order as found in grouping
-                    table.insert(t.kids, j, cg.kids[p])
-                    j = j + 1
+-- First lets completely expand all 'uses', whether within 'grouping's or
+-- outside. Once we are done with this phase, we are safe to remove 'grouping's
+-- as we wont need their _content_ anymore
+function _expand_inplace_uses(t)
+    if t.kids then
+        local has_more_uses = false
+        repeat
+            local newkids = {}
+            has_more_uses = false
+            for i,k in ipairs(t.kids) do
+                if k.id == 'uses' then
+                    cg = checks.groupings[utils.strip_ns(k.val)] -- FIXME: assume no collision across NS
+                    assert(cg, 'No such group found: '.. k.val)
+                    for p,q in pairs(cg.kids) do -- copy over in the same order as found in grouping
+                        table.insert(newkids, q)
+                        if q.id == 'uses' then has_more_uses = true end
+                    end
+                else
+                    table.insert(newkids, k)
                 end
             end
-        end
+            t.kids = newkids
+        until has_more_uses == false
+
         for _,k in ipairs(t.kids) do
             if k.node then
-                _expand_inplace_grouping(k.node)
+                _expand_inplace_uses(k.node)
+            end
+        end
+    end
+end
+
+function _remove_groupings(t)
+    if t.kids then
+	-- reverse walk - to remove safely (even consecutive items)
+	for i=#t.kids,1,-1 do
+	    if t.kids[i].id == 'grouping' then
+		table.remove(t.kids, i)
+	    end
+	end
+
+        for _,k in ipairs(t.kids) do
+            if k.node then
+                _remove_groupings(k.node)
             end
         end
     end
@@ -250,7 +275,8 @@ function ast.cli_dump(t)
 end
 
 function ast.expand_inplace(t)
-    _expand_inplace_grouping(t)
+    _expand_inplace_uses(t)
+    _remove_groupings(t)
     -- TODO: expand includes  as well ? (submodules will then be empty/removed?)
     _expand_inplace_augment(t)
 end

@@ -1,8 +1,14 @@
 submodule sub-grp {
    belongs-to tgrp2;
 
+   grouping subuse2 {
+      leaf l21 { type string; }
+      leaf l22 { type uint32; }
+   }
+
    grouping Gtst {
       leaf l1 { type string; }
       leaf l2 { type uint32; }
+      uses subuse2;
    }
 }

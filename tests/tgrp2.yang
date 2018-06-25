@@ -3,10 +3,22 @@ module tgrp2 {
   prefix 't2';
 
   include sub-grp;
+
+  grouping Ginner {
+      leaf gi1 {type string;}
+      leaf gi2 {type string;}
+  }
+
+  grouping Goutest {
+       leaf go1 { type uint32; }
+       uses Ginner;
+       leaf go2 { type uint32; }
+  }
  
   container C1 {
      uses Gtst;
      leaf l3 { type string; }
   }
 
+  uses Goutest;
 }

@@ -56,7 +56,7 @@ local function check_module(t)
             if not val:match('^%d%d%d%d[-]%d%d[-]%d%d$') then
                 perror("revision date should be of the form: YYYY-MM-DD ("..k.val..")")
             end
-            table.insert(rev, k.val) -- create a revisions table
+            table.insert(rev, val) -- create a revisions table
         end
     end
     -- Walk through all the revisions
