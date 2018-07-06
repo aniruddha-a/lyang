@@ -6,7 +6,15 @@ local L     = require 'linenoise'
 local utils = require 'utils'
 local compl = require 'compl'
 
-local prompt   = "lycli> "
+function get_hostname ()
+    local f = io.popen ("/bin/hostname")
+    local name = f:read("*a") or ""
+    f:close()
+    name = string.gsub(name, "\n$", "")
+    return name
+end
+
+local prompt   = "lycli@"..get_hostname().."> "
 local histfile = '/tmp/.lyclihist'
 
 if not arg[1] then print [[ usage: ycli <cli-file> ]] os.exit(1) end
@@ -43,6 +51,7 @@ function main()
         else
             L.historyadd(line)
             print('\r\n Adding ['..line..']')
+            print('\n ['..os.date()..']')
             L.historysave(histfile)
             --local f = gfn[line]
             --if f then f(line) else print 'Invalid/Incomplete command' end
