@@ -91,11 +91,25 @@ function utils.namespaced(s)
     return s:match(':') and true or false
 end
 
+-- Remove ns: part and return name
 function utils.strip_ns(s)
     if utils.namespaced(s) then
         return s:split()[2] -- default delim ':'
     else
         return s
     end
+end
+
+-- Return {ns, name} tuple
+function utils.split_ns(s)
+    if utils.namespaced(s) then
+        return s:split()[1], s:split()[2]
+    else
+        return s
+    end
+end
+
+function utils.strip_ext (f)
+    return f:gsub('.yang$', '')
 end
 return utils

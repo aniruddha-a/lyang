@@ -2,6 +2,7 @@
 local ast = {
         tree = nil,
         name = nil, -- basename of the file (module name)
+        prefixes = {} -- map import prefix to actual module name
 }
 local utils  = require 'utils'
 local checks = require 'checks'
@@ -160,6 +161,29 @@ function _expand_inplace_augment(t)
 
 end
 
+-- We first search with the NS prefix as-is (if the name of the module
+-- and the prefix with which it was imported matches, then this
+-- will work) If not, we change the prefix to the actual module name
+-- and search again.
+function _get_grouping(name)
+    local g = utils.strip_quote(name)
+    local grp = checks.groupings[g]
+
+    if grp then return grp end
+
+    local ns, n = utils.split_ns(name)
+    g = ast.prefixes[ns]..':'..n
+    print ("$$$ changed : ", name , g)
+    grp = checks.groupings[g]
+
+    if grp then return grp end
+
+    grp = checks.groupings[n]
+    if grp then return grp end
+
+    assert(grp, 'No such group found: '.. name)
+end
+
 -- First lets completely expand all 'uses', whether within 'grouping's or
 -- outside. Once we are done with this phase, we are safe to remove 'grouping's
 -- as we wont need their _content_ anymore
@@ -171,8 +195,7 @@ function _expand_inplace_uses(t)
             has_more_uses = false
             for i,k in ipairs(t.kids) do
                 if k.id == 'uses' then
-                    cg = checks.groupings[utils.strip_ns(k.val)] -- FIXME: assume no collision across NS
-                    assert(cg, 'No such group found: '.. k.val)
+                    cg = _get_grouping(k.val)
                     for p,q in pairs(cg.kids) do -- copy over in the same order as found in grouping
                         table.insert(newkids, q)
                         if q.id == 'uses' then has_more_uses = true end
@@ -274,7 +297,25 @@ function ast.cli_dump(t)
     return _cli_dump(t, nil, 0)
 end
 
+function _store_import_prefixes(t)
+    local pfx, modname
+    for _,k in ipairs(t.kids) do
+        if k.id == 'module' or k.id == 'submodule' then
+            for _,s in ipairs(k.node.kids) do
+                if s.id == 'import' then
+                    modname = utils.strip_quote(s.val)
+                    if s.node.kids[1].id == 'prefix' then -- XXX:assume first entry is prefix?
+                        pfx = utils.strip_quote(s.node.kids[1].val)
+                        ast.prefixes[pfx] = modname
+                    end
+                end
+            end
+        end
+    end
+end
+
 function ast.expand_inplace(t)
+    _store_import_prefixes(t)
     _expand_inplace_uses(t)
     _remove_groupings(t)
     -- TODO: expand includes  as well ? (submodules will then be empty/removed?)

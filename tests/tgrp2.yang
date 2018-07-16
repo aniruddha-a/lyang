@@ -4,15 +4,29 @@ module tgrp2 {
 
   include sub-grp;
 
-  grouping Ginner {
+  grouping Ginner1 {
       leaf gi1 {type string;}
+  }
+  grouping Ginner2 {
       leaf gi2 {type string;}
   }
 
   grouping Goutest {
-       leaf go1 { type uint32; }
-       uses Ginner;
-       leaf go2 { type uint32; }
+      container InsideGoutest {
+          some:non-leaf;
+          some:info "";
+          some:help
+            "msg"+
+            "msg2";
+          some:last "msg3";
+          leaf go1 { type uint32; }
+          container InG1 {
+              uses Ginner1;
+          }
+          leaf go2 { type uint32; }
+
+          uses Ginner2;
+      }
   }
  
   container C1 {
@@ -20,5 +34,7 @@ module tgrp2 {
      leaf l3 { type string; }
   }
 
-  uses Goutest;
+  container top {
+      uses Goutest;
+  }
 }

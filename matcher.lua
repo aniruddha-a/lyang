@@ -4,6 +4,7 @@ local pp     = require 'thirdparty/pprint'
 local utils  = require 'utils'
 local ast    = require 'ast'
 local checks = require 'checks' -- validations
+local colors = require 'thirdparty/ansicolors'
 
 local matcher = { }
 
@@ -51,7 +52,7 @@ function _domatch(name, data)
         print("Failed to match '"..name.."'.", "stop @:"..pos);
     else
         if n >= #data then
-            print("'"..name.."': Matched entirely")
+            print(colors('%{bright}'..name..':%{green} Matched entirely%{reset}'))
             -- Load only the import/includes, so that we can continue further matching
             checks.load_sub(ast, matcher.modules)
             return ast.tree
@@ -120,13 +121,13 @@ function matcher.run(modules, args)
         end
     end
     if next(modarr) == nil then
-        print("\n\n--MATCHING COMPLETE--\n\n")
+        print(colors('%{blue}MATCHING COMPLETE%{reset}'))
         return
     end
     table.sort(modarr) -- predictable order
     for _,mod in ipairs(modarr) do
         t = modules.name[mod]
-        print("'"..modname.."': Requires '" .. mod .. "'")
+        print(colors('%{bright}'..modname..'%{reset}:%{yellow} Requires '..mod..'%{reset}'))
         ast.init(mod, debug > 2 and true or false)
         data = _read_file(utils.find_file(mod))
         if data then

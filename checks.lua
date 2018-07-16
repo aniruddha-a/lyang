@@ -6,6 +6,7 @@ local checks = {
    modname         = nil, -- Name of the module/submodule we are processing
    groupings       = {},
    augments        = {},
+   belongs_to      = nil
 }
 
 local must_have_subs    = {}
@@ -94,7 +95,12 @@ local function assert_ver1(t)
 end
 
 local function store_grouping(t)
-    checks.groupings[t.val] = t.node
+    checks.groupings[t.val] = t.node -- normal entry
+    if checks.belongs_to then
+        checks.groupings[checks.belongs_to..':'..t.val] = t.node -- Parent NS prefixed entry
+    else
+        checks.groupings[checks.modname..':'..t.val] = t.node -- NS prefixed entry
+    end
 end
 
 local function store_augment(t)
@@ -638,14 +644,15 @@ function _do_mark(t)
     end
 end
 
--- Initial (minimal) load/check - this is required to tell tha
+-- Initial (minimal) load/check - this is required to tell the
 -- matcher which included submodules/imports are to be matched
 -- Also, stores locations of grouping/augments
 function checks.load_sub(ast, modules)
-    local t        = ast.tree
-    checks.modname = ast.name
-    checks.modules = modules
-    local name     = nil
+    local t           = ast.tree
+    checks.modname    = ast.name
+    checks.modules    = modules
+    checks.belongs_to = nil
+    local name        = nil
 
     for _,k in ipairs(t.kids) do
         if k.id == 'module' or k.id == 'submodule' then
@@ -655,6 +662,8 @@ function checks.load_sub(ast, modules)
                     add_to_match_list(s)
                 elseif s.id == 'prefix' then
                     checks.modules.prefix[name] = utils.strip_quote(s.val)
+                elseif s.id == 'belongs-to' then
+                    checks.belongs_to = utils.strip_quote(s.val)
                 end
             end
             goto mark_nodes
