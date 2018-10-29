@@ -112,4 +112,17 @@ end
 function utils.strip_ext (f)
     return f:gsub('.yang$', '')
 end
+
+function utils.is_abs_path(s)
+    return s:match('^/') == a
+end
+
+function utils.path_components(path)
+    local t={}
+    for p in path:gmatch('[^/]+') do
+        table.insert(t, p)
+    end
+    return t
+end
+
 return utils

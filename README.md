@@ -9,4 +9,5 @@ Lua [LPeg](http://www.inf.puc-rio.br/~roberto/lpeg/) based [YANG](https://tools.
 # Utils/debug
 
 - Using [pprint](https://github.com/jagt/pprint.lua) for debugging.
-- Using [lua-linenoise](https://github.com/hoelzro/lua-linenoise) for line edit/completion.
+- Using [lua-linenoise](https://github.com/hoelzro/lua-linenoise) for line edit/CLI completion.
+- Using [ansicolors](https://github.com/kikito/ansicolors.lua) for colored status output.

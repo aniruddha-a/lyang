@@ -9,7 +9,7 @@ local colors = require 'thirdparty/ansicolors'
 local matcher = { }
 
 local function perror(msg)
-    print('Error: '..msg)
+    print(colors('%{bright red}Error: '..msg..'%{reset}'))
 end
 
 function _domatch(name, data)
