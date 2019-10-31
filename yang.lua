@@ -52,10 +52,6 @@ function do_validate()
 end
 
 function dump_cli()
-    if args.output ~= 'cli' then
-        return
-    end
-
     local old_print = nil
     if args.file then
         old_print=print
@@ -70,6 +66,22 @@ function dump_cli()
         ast.cli_dump(tree)
     end
     print("  }\n}")
+    if old_print then
+        print=old_print
+        print("Written to: "..args.file)
+    end
+end
+
+function dump_path()
+    local old_print = nil
+    if args.file then
+        old_print=print
+        io.output(args.file) -- redirect stdout
+        print=function(...) io.write(table.concat({...},' '),'\n') end
+    end
+    for mod,tree in pairs(modules.name) do
+        ast.path_dump(tree, args.filter and args.filter[1] or nil)
+    end
     if old_print then
         print=old_print
         print("Written to: "..args.file)
@@ -96,7 +108,11 @@ function main()
     if args.expand then
         dump_main(args.input) -- Only main module
     end
-    dump_cli()  -- validation/expansion shud have completed
+    if args.output == 'cli' then
+        dump_cli()  -- validation/expansion shud have completed
+    elseif args.output == 'path' then
+        dump_path()
+    end
 end
 
 function handle_args()
@@ -108,7 +124,7 @@ function handle_args()
               :count '0-3'
     optparse:flag("-E --expand", "Expand and show only main Module.")
               :count '0-1'
-    optparse:option("-o --output", "Output format (for now: 'cli') ")
+    optparse:option("-o --output", "Output format ('cli' | 'path') ")
     optparse:option("-f --file", "Write to file")
     optparse:option("-P --path", "Module/sub-module include paths.")
               :count("*")

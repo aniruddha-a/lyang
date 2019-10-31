@@ -16,7 +16,7 @@ fi
 CLI_DIR=thirdparty/lua-linenoise/
 CLI_SO=$CLI_DIR/linenoise.so
 if [[ ! -e $CLI_SO ]]; then
-    make -C $CLI_DIR
+    make -C $CLI_DIR # For now no make, we just copy the .so
 fi
 
 if [[ $1 == test ]]; then

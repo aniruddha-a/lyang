@@ -1,1 +1,19 @@
-/lyang -o cli -f /tmp/a.cli tests/employee.yang
+# Generate a CLI input file called a.cli, from employee.yang
+
+./lyang -o cli -f /tmp/a.cli tests/employee.yang
+
+# The CLI file can then be used with lycli
+
+./lycli /tmp/a.cli
+
+# Dump a yang with filters applied
+
+./lyang -d -F filters/filter_r1.lua  tests/snips.yang
+
+# Show only yang paths that match a filter
+
+./lyang -o path -F filters/path_filter.lua  tests/snips.yang
+
+# Write matched paths to a file
+
+./lyang -o path -f /tmp/aaa  -F filters/path_filter.lua  tests/snips.yang

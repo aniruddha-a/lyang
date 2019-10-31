@@ -297,6 +297,51 @@ function ast.cli_dump(t)
     return _cli_dump(t, nil, 0)
 end
 
+function _path_dump_f(t, path, filter)
+    local skip = false
+    if filter.config_only and not is_config(t.kids) then
+        skip = true
+    end
+    if not skip then
+        for _,k in ipairs(t.kids) do
+            if k.id == 'container' or k.id == 'list' then
+                _path_dump_f(k.node, path..'/'..k.val, filter)
+            else
+                if k.id == 'leaf' or k.id == 'leaf-list' then
+                    if filter.show_only then
+                        if k.id == filter.show_only then
+                            print(path..'/'..k.val)
+                        end
+                    else
+                        print(path..'/'..k.val)
+                    end
+                end
+            end
+        end
+    end
+end
+
+function _path_dump(t, path)
+    for _,k in ipairs(t.kids) do
+        if k.id == 'container' or k.id == 'list' then
+            _path_dump(k.node, path..'/'..k.val)
+        else
+            if k.id == 'leaf' or k.id == 'leaf-list' then
+                print(path..'/'..k.val)
+            end
+        end
+    end
+end
+
+function ast.path_dump(t, ff)
+    if ff then
+        local f = dofile(ff)
+        return _path_dump_f(t.kids[1].node, '', f)
+    else
+        return _path_dump(t.kids[1].node, '')
+    end
+end
+
 function _store_import_prefixes(t)
     local pfx, modname
     for _,k in ipairs(t.kids) do

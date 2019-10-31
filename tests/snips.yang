@@ -3,9 +3,9 @@ module snips {
     namespace 'snips';
     prefix 's';
 
-    container S {
+    container C1 {
         presence true;
-        list l1 {
+        list L1 {
             key k;
             leaf k {
                 tailf:hidden internal; // remove me
@@ -17,25 +17,33 @@ module snips {
             }
         }
 
-        container K2 {
+        container C2 {
             tailf:hidden internal; // remove me
         }
 
-        leaf J2 {
+        leaf j2 {
             tailf:info "HelloJ2";
             type uint32;
         }
     }
 
 
-    container opdata {
+    container COpData {
       tailf:cdb-oper {
         tailf:persistent true;
       }
-      list op {
+      list L2 {
          key k;
+         leaf-list pathme {
+             type string;
+         }
          leaf k { type string; }
          leaf l { type string; }
+         container InL2  {
+           container CO {
+              leaf q { type string; }
+           }
+         }
       }
     }
 
