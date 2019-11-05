@@ -1,0 +1,12 @@
+To create a stabdalone executable, [luastatic](https://github.com/ers35/luastatic)
+can be used.
+
+Only external dependency here, is the `LPeg` library, which is by default shipped
+as dynamic (`.so`)
+
+What I did:
+ - Download the [LPeg sources](http://www.inf.puc-rio.br/~roberto/lpeg/#download)
+ - Use `LuaJIT` paths in `makefile`
+ - build, and then create a static lib (with `ar`) called `liblpeg.a`
+ - luastatic.lua yang.lua ast.lua checks.lua utils.lua matcher.lua thirdparty/pprint.lua thirdparty/ansicolors.lua thirdparty/argparse.lua -I /path/to/LuaJIT-2.0.5/src /path/to/lpeg-1.0.2/liblpeg.a -L /path/to/LuaJIT-2.0.5/build  -lluajit -lm -ldl
+

@@ -9,7 +9,7 @@ local utils   = require 'utils'
 
 local args
 
-local modules = { -- indexable by name / prefix (Note: we load both module/submodule here
+local modules = { -- indexable by name / prefix (Note: we load both module/submodule here)
     name   = {},
     prefix = {}
 }
@@ -46,7 +46,7 @@ function do_validate()
         if checks.run(tree, mod, modules) then
             print(colors('%{bright}'..mod..'%{reset}: %{green}Validated successfully%{reset}'))
         else
-            print(colors('%{bright}'..mod..'%{reset}: %{red}'..checks.validation_errs..' Validated errors found%{reset}'))
+            print(colors('%{bright}'..mod..'%{reset}: %{red}'..checks.validation_errs..' Validation errors found%{reset}'))
         end
     end
 end
@@ -72,7 +72,7 @@ function dump_cli()
     end
 end
 
-function dump_path()
+function dump_path(mm)
     local old_print = nil
     if args.file then
         old_print=print
@@ -80,7 +80,10 @@ function dump_path()
         print=function(...) io.write(table.concat({...},' '),'\n') end
     end
     for mod,tree in pairs(modules.name) do
-        ast.path_dump(tree, args.filter and args.filter[1] or nil)
+        if utils.basename(utils.strip_ext(mm)) == mod then
+        print (">> ", mm , mod)
+            ast.path_dump(tree, args.filter and args.filter[1] or nil)
+        end
     end
     if old_print then
         print=old_print
@@ -107,16 +110,17 @@ function main()
     end
     if args.expand then
         dump_main(args.input) -- Only main module
+        os.exit()
     end
     if args.output == 'cli' then
         dump_cli()  -- validation/expansion shud have completed
     elseif args.output == 'path' then
-        dump_path()
+        dump_path(args.input) -- Main module
     end
 end
 
 function handle_args()
-    local optparse = argp("yang.lua", "A YANG recognizer and validator.")
+    local optparse = argp("lyang", "A YANG recognizer and validator.")
     optparse:argument("input", "Input YANG file.")
     optparse:flag("-d --debug", "Debug ( once for indented-yang;\n\t "..
                                         "twice for expanded-yang;\n\t "..
@@ -130,6 +134,7 @@ function handle_args()
               :count("*")
     optparse:option("-F --filter", "Apply filters")
               :count("*")
+    optparse:epilog("Version 0.1\nAniruddha. A(aniruddha.a@gmail.com)")
     args = optparse:parse()
     --pp.pprint(args)
 end
