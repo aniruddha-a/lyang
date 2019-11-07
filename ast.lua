@@ -6,6 +6,7 @@ local ast = {
 }
 local utils  = require 'utils'
 local checks = require 'checks'
+local colors = require 'thirdparty/ansicolors'
 
 function ast.getnode(p)
     return { kids={}, parent=p }
@@ -152,13 +153,59 @@ function _indent_f(t, nsp, filter)
     end
 end
 
+function _remove_augments(t)
+    if t.kids then
+	-- reverse walk - to remove safely (even consecutive items)
+	for i=#t.kids,1,-1 do
+	    if t.kids[i].id == 'augment' then
+		table.remove(t.kids, i)
+	    end
+	end
+
+        for _,k in ipairs(t.kids) do
+            if k.node then
+                _remove_augments(k.node)
+            end
+        end
+    end
+end
+
 function _expand_inplace_augment(t)
     --[[
-    --for every augment in the list found
-    --check where they belong (search the loaded modules list)
-    --and expand inline
+
+    for every augment in the list found
+    check where they belong (search the loaded modules list)
+    and expand inline
+
+    Augment cannot contain augment - so this can be processed
+    before expanding groupings and then grouping expansion
+    can happen
+
     --]]
 
+    for path, atbl in pairs(checks.augments) do
+        ptbl = utils.strip_quote(path):split('/') -- get path components
+        if t.kids then
+            idx = 1
+            t = t.kids[1].node -- Directly get into the module's contents
+            while t and idx <= #ptbl do -- for as many levels in the path
+                found = 0
+                for _, k in ipairs(t.kids) do
+                    local ns, n = utils.split_ns(ptbl[idx])
+                    if k.val == n then
+                        idx = idx + 1
+                        t = k.node
+                        found = 1
+                        break
+                    end
+                end
+                if not found then t = nil end
+            end
+            for _,v in pairs(atbl.kids) do
+                table.insert(t.kids, v)
+            end
+        end
+    end
 end
 
 -- We first search with the NS prefix as-is (if the name of the module
@@ -173,7 +220,7 @@ function _get_grouping(name)
 
     local ns, n = utils.split_ns(name)
     g = ast.prefixes[ns]..':'..n
-    print ("$$$ changed : ", name , g)
+    print(colors("%{cyan}Canonicalize namespace: %{bright}".. name.. "%{reset} %{cyan}(".. g ..")%{reset}"))
     grp = checks.groupings[g]
 
     if grp then return grp end
@@ -365,6 +412,7 @@ function ast.expand_inplace(t)
     _remove_groupings(t)
     -- TODO: expand includes  as well ? (submodules will then be empty/removed?)
     _expand_inplace_augment(t)
+    _remove_augments(t)
 end
 
 return ast

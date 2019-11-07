@@ -61,7 +61,7 @@ tailf:info "Name of the services";
 tailf:unique-selector pbf-policy-group/rules/rule {
 tailf:unique-leaf 'name';
       }
-      augment "/org:orgs/org:org-services" {
+      augment "/o:oop/o:oops" {
           status deprecated;
       }
       leaf-list ieee-802.1p {
