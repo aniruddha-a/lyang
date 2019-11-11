@@ -1,0 +1,22 @@
+module aug_exp {
+    namespace "http://aug_exp.in/";
+    prefix ae;
+
+    container C1 {
+        leaf l1 { type string; }
+        leaf l2 { type uint32; }
+        container C2 {
+            leaf k1  { type string; }
+        }
+    }
+
+    grouping g-in {
+        container C3 {
+            leaf j1  { type string; }
+        }
+    }
+
+    augment "/ae:C1/C2" {
+         uses g-in;
+    }
+}

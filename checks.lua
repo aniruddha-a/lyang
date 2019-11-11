@@ -1,5 +1,6 @@
 -- Validation - Enforce RFC6020 checks
 local utils = require 'utils'
+local colors = require 'thirdparty/ansicolors'
 
 local checks = {
    validation_errs = 0,
@@ -15,12 +16,12 @@ local additional_checks = {}
 local mark              = {}
 
 local function perror(msg)
-    print('Error: '.. "'"..checks.modname.."': " ..msg)
+    print(colors('%{red}Error:%{reset} '.. "%{bright}"..checks.modname.."%{reset}: %{red}" ..msg.. '%{reset}'))
     checks.validation_errs = checks.validation_errs + 1
 end
 
 local function pnotice(msg)
-    print("'"..checks.modname.."': Note: "..msg)
+    print(colors('%{bright}'..checks.modname..'%{reset}: %{magenta}Note: '..msg..'%{reset}'))
 end
 
 -- Module and revision checks
@@ -103,10 +104,6 @@ local function store_grouping(t)
     end
 end
 
-local function store_augment(t)
-    checks.augments[t.val] = t.node
-end
-
 local function ensure_key_on_cfg(t)
     local subs        = t.node.kids
     local is_config   = true
@@ -161,7 +158,11 @@ additional_checks['list']         = ensure_key_on_cfg
 
 -- Make a note/store location of..
 mark['grouping'] = store_grouping
-mark['augment']  = store_augment
+-- mark['augment']  = store_augment -- augments cannot be stored unlike grouping
+--                                     as they don't have a unique name
+--                                     and the same paths can be used in multiple
+--                                     augments statements (we cannot use the path
+--                                     as a key)
 
 -- Allowed substatements (only these can appear under its parent [other than namespaced ones])
 allowed_subs['module'] = {

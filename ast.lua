@@ -153,56 +153,102 @@ function _indent_f(t, nsp, filter)
     end
 end
 
-function _remove_augments(t)
+function _remove_elements(t, elem)
     if t.kids then
 	-- reverse walk - to remove safely (even consecutive items)
 	for i=#t.kids,1,-1 do
-	    if t.kids[i].id == 'augment' then
+	    if t.kids[i].id == elem then
 		table.remove(t.kids, i)
 	    end
 	end
 
         for _,k in ipairs(t.kids) do
             if k.node then
-                _remove_augments(k.node)
+                _remove_elements(k.node, elem)
             end
         end
     end
 end
 
-function _expand_inplace_augment(t)
-    --[[
-
-    for every augment in the list found
-    check where they belong (search the loaded modules list)
-    and expand inline
-
+--[[
     Augment cannot contain augment - so this can be processed
-    before expanding groupings and then grouping expansion
-    can happen
+    before expanding groupings
+--]]
+function _expand_inplace_augment(mm)
+    if not mm.kids then return end
 
-    --]]
+    local augments = {}
+    local t = mm.kids[1].node -- Directly get into the module/submodule's contents
+    for _, k in ipairs(t.kids) do
+        if k.id == 'augment' then
+            table.insert(augments, { path = k.val, contents = k.node.kids }) -- path can be repeated in multiple augments, cant use as key
+        end
+    end
 
-    for path, atbl in pairs(checks.augments) do
-        ptbl = utils.strip_quote(path):split('/') -- get path components
-        if t.kids then
-            idx = 1
-            t = t.kids[1].node -- Directly get into the module's contents
-            while t and idx <= #ptbl do -- for as many levels in the path
-                found = 0
-                for _, k in ipairs(t.kids) do
-                    local ns, n = utils.split_ns(ptbl[idx])
-                    if k.val == n then
-                        idx = idx + 1
-                        t = k.node
-                        found = 1
-                        break
-                    end
+    -- XXX: Do we have to first expand grouping at this stage
+    -- before attempting augment path processsing?
+    -- What if the path that we are trying to find, wont exist
+    -- unless grouping expansion has been completed !?
+
+    if #augments == 0 then return end
+
+    for _,data in ipairs(augments) do
+        local path = data.path
+        local ptbl = utils.strip_quote(path):split('/') -- get path components
+        local augt = data.contents
+        local idx  = 1
+        local t    = mm.kids[1].node                    -- Directly get into the module/submodule's contents (only main module path are processed)
+        while t and idx <= #ptbl do                     -- for as many levels in the path
+            local ns, pname = utils.split_ns(ptbl[idx]) -- path components maybe namespaced
+            if not pname then pname = ns end            -- when no namespace
+            found = false
+            for _, k in ipairs(t.kids) do
+                if k.val == pname and (k.id == 'container' or k.id == 'list') then -- augment can be only under a content node
+                    idx = idx + 1
+                    t = k.node
+                    found = true
+                    break
                 end
-                if not found then t = nil end
             end
-            for _,v in pairs(atbl.kids) do
+            if not found then
+                -- Not present in the current main module that we are processing
+                print(colors("%{magenta}Augment path: %{bright}".. path.. "%{reset} not found in current set"))
+                t = nil
+                break
+            end
+        end
+        if t and idx == #ptbl+1 then
+            for _,v in pairs(augt) do
                 table.insert(t.kids, v)
+                v.parent = t
+            end
+        end
+    end
+end
+
+-- A sub-module can be 'include'd in more than one file
+local included_already = {}
+function _not_yet_included (m)
+    if included_already[m] then
+        return false
+    else
+        included_already[m] = true
+        return true
+    end
+end
+
+function _expand_inplace_includes (mm)
+    if not mm.kids then return end
+
+    local t = mm.kids[1].node -- Directly get into the module/submodule's contents
+    for _, k in ipairs(t.kids) do
+        if k.id == 'include' and _not_yet_included(k.val) then
+            local im = get_tree(k.val) -- get included module/submodule tree
+            local it = im.kids[1].node  -- get into mod/submod contents
+            for _, j in ipairs(it.kids) do
+                if j.id == 'container' or j.id == 'list' then -- Expand only content nodes from includes to main module
+                    table.insert(t.kids, j)
+                end
             end
         end
     end
@@ -220,7 +266,7 @@ function _get_grouping(name)
 
     local ns, n = utils.split_ns(name)
     g = ast.prefixes[ns]..':'..n
-    print(colors("%{cyan}Canonicalize namespace: %{bright}".. name.. "%{reset} %{cyan}(".. g ..")%{reset}"))
+    print(colors("%{cyan}Canonicalize namespace: %{bright}".. name.. "%{reset} %{cyan} => ".. g .."%{reset}"))
     grp = checks.groupings[g]
 
     if grp then return grp end
@@ -257,23 +303,6 @@ function _expand_inplace_uses(t)
         for _,k in ipairs(t.kids) do
             if k.node then
                 _expand_inplace_uses(k.node)
-            end
-        end
-    end
-end
-
-function _remove_groupings(t)
-    if t.kids then
-	-- reverse walk - to remove safely (even consecutive items)
-	for i=#t.kids,1,-1 do
-	    if t.kids[i].id == 'grouping' then
-		table.remove(t.kids, i)
-	    end
-	end
-
-        for _,k in ipairs(t.kids) do
-            if k.node then
-                _remove_groupings(k.node)
             end
         end
     end
@@ -408,11 +437,12 @@ end
 
 function ast.expand_inplace(t)
     _store_import_prefixes(t)
-    _expand_inplace_uses(t)
-    _remove_groupings(t)
-    -- TODO: expand includes  as well ? (submodules will then be empty/removed?)
+    _expand_inplace_includes(t)
+    _expand_inplace_uses(t) -- groupings
+    _remove_elements(t, 'grouping')
     _expand_inplace_augment(t)
-    _remove_augments(t)
+    _remove_elements(t, 'augment')
+    _remove_elements(t, 'include')
 end
 
 return ast

@@ -22,6 +22,13 @@ function dump_tree()
                                            or nil) -- assume 1 filter file for now
     end
 end
+function get_tree(name)
+    for mod,tree in pairs(modules.name) do
+        if mod == name then
+            return tree
+        end
+    end
+end
 
 function dump_main(mm)
     for mod,tree in pairs(modules.name) do
@@ -81,7 +88,6 @@ function dump_path(mm)
     end
     for mod,tree in pairs(modules.name) do
         if utils.basename(utils.strip_ext(mm)) == mod then
-        print (">> ", mm , mod)
             ast.path_dump(tree, args.filter and args.filter[1] or nil)
         end
     end
