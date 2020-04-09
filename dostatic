@@ -1,0 +1,9 @@
+#!/bin/bash
+LUAJIT_LIB_DIR=/home/ani/libluajit/build  # .a file
+LUAJIT_INC_DIR=/home/ani/LuaJIT-2.0.5/src/ # *.h
+./thirdparty/luastatic/luastatic.lua ./yang.lua ast.lua checks.lua utils.lua matcher.lua \
+        thirdparty/pprint.lua thirdparty/ansicolors.lua thirdparty/argparse.lua \
+        -I $LUAJIT_INC_DIR \
+        ./thirdparty/lpeg-1.0.2/liblpeg.a \
+        -L $LUAJIT_LIB_DIR \
+        -lluajit -lm -ldl -o lyang.exe
